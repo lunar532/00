@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>소설 리더</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
+    --border: #2e2e2e; --text: #e8e8e8; --text-muted: #777;
+    --accent: #c8a96e; --radius: 10px;
+    --font: 'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; -webkit-tap-highlight-color:transparent; }
+
+  /* 설정 */
+  #screen-setup { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:2rem 1.25rem; }
+  .logo { font-size:12px; letter-spacing:.15em; color:var(--accent); text-transform:uppercase; margin-bottom:.5rem; }
+  .setup-title { font-size:24px; font-weight:700; margin-bottom:2rem; }
+  .setup-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.75rem; width:100%; max-width:400px; }
+  .field-label { font-size:12px; color:var(--text-muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; display:block; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.25rem; }
+  input[type=number] { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:16px; font-family:var(--font); padding:10px 14px; outline:none; transition:border-color .15s; -moz-appearance:textfield; }
+  input[type=number]::-webkit-inner-spin-button { display:none; }
+  input[type=number]:focus { border-color:var(--accent); }
+  .hint { font-size:12px; color:var(--text-muted); margin-bottom:1.5rem; line-height:1.6; background:var(--surface2); border-radius:var(--radius); padding:10px 14px; }
+  .btn-primary { width:100%; background:var(--accent); color:#0f0f0f; border:none; border-radius:var(--radius); font-size:15px; font-weight:700; font-family:var(--font); padding:13px; cursor:pointer; }
+  .btn-primary:active { opacity:.8; }
+  #err-msg { color:#e05555; font-size:13px; margin-top:10px; display:none; text-align:center; }
+
+  /* 목록 */
+  #screen-list { display:none; }
+  .top-bar { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--bg); z-index:10; }
+  .btn-icon { background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:16px; width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .btn-icon:active { background:var(--surface2); }
+  .top-bar-title { font-size:15px; font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .chapter-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:8px; padding:16px; }
+  .ch-btn { background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:var(--font); padding:10px 4px; cursor:pointer; text-align:center; }
+  .ch-btn.read { border-color:#8a7048; color:var(--accent); }
+
+  /* 리더 */
+  #screen-reader { display:none; }
+  #reader-content { padding:0 0 110px; text-align:center; }
+  #reader-content img { display:block; width:100%; max-width:720px; margin:0 auto; vertical-align:top; }
+  .reader-loading { padding:80px 20px; text-align:center; color:var(--text-muted); font-size:14px; }
+  .spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .error-box { padding:60px 20px; text-align:center; color:var(--text-muted); }
+  .error-box .icon { font-size:36px; margin-bottom:12px; }
+  .error-box p { font-size:14px; line-height:1.7; }
+  .error-box button { margin-top:16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:14px; font-family:var(--font); padding:9px 20px; cursor:pointer; }
+
+  /* 하단 네비 */
+  .nav-bar { position:fixed; bottom:0; left:0; right:0; display:flex; gap:8px; padding:10px 12px; padding-bottom:calc(10px + env(safe-area-inset-bottom)); background:rgba(15,15,15,.95); backdrop-filter:blur(12px); border-top:1px solid var(--border); z-index:20; }
+  .btn-nav { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:14px; font-weight:600; font-family:var(--font); padding:11px 8px; cursor:pointer; }
+  .btn-nav:active { background:var(--surface2); }
+  .btn-nav.accent { background:var(--accent); border-color:var(--accent); color:#0f0f0f; }
+  .btn-nav:disabled { opacity:.3; cursor:default; }
+  .chapter-info { flex:0 0 auto; text-align:center; font-size:12px; color:var(--text-muted); align-self:center; line-height:1.4; min-width:48px; }
+  .chapter-info strong { display:block; font-size:13px; color:var(--text); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div id="screen-setup">
+  <div class="logo">Novel Reader</div>
+  <div class="setup-title">소설 불러오기</div>
+  <div class="setup-card">
+    <div class="field-row">
+      <div>
+        <label class="field-label" for="inp-start">시작 ID</label>
+        <input type="number" id="inp-start" placeholder="679900" value="679900">
+      </div>
+      <div>
+        <label class="field-label" for="inp-end">끝 ID</label>
+        <input type="number" id="inp-end" placeholder="679960" value="679960">
+      </div>
+    </div>
+    <div class="hint">
+      온도북 URL의 <code style="color:var(--accent)">wr_id=</code> 숫자를 입력하세요.<br>
+      예) .../board.php?bo_table=novel&amp;<b style="color:var(--accent)">wr_id=679908</b>
+    </div>
+    <button class="btn-primary" onclick="startReader()">읽기 시작</button>
+    <div id="err-msg"></div>
+  </div>
+</div>
+
+<div id="screen-list">
+  <div class="top-bar">
+    <button class="btn-icon" onclick="showSetup()">⚙️</button>
+    <div class="top-bar-title" id="list-title">화 목록</div>
+  </div>
+  <div class="chapter-grid" id="chapter-grid"></div>
+</div>
+
+<div id="screen-reader">
+  <div class="top-bar">
+    <button class="btn-icon" onclick="showList()">☰</button>
+    <div class="top-bar-title" id="reader-title">불러오는 중...</div>
+    <button class="btn-icon" onclick="showSetup()">⚙️</button>
+  </div>
+  <div id="reader-content">
+    <div class="reader-loading"><div class="spinner"></div><div>불러오는 중...</div></div>
+  </div>
+  <div class="nav-bar">
+    <button class="btn-icon" onclick="showList()">☰</button>
+    <button class="btn-nav" id="btn-prev" onclick="goPrev()">◀ 이전</button>
+    <div class="chapter-info"><strong id="nav-ch">-</strong><span id="nav-sub">화</span></div>
+    <button class="btn-nav accent" id="btn-next" onclick="goNext()">다음 ▶</button>
+  </div>
+</div>
+
+<script>
+// newtoki 미러 목록 (숫자 높을수록 최신)
+const MIRRORS = ['newtoki469','newtoki468','newtoki467','newtoki466','newtoki465'];
+
+// 이미지 URL의 구 도메인을 최신 미러로 교체
+function fixImgUrl(url, mirrorIdx) {
+  mirrorIdx = mirrorIdx || 0;
+  // newtoki숫자.org|com|net 패턴 교체
+  if (/newtoki\d+\.(org|com|net)/i.test(url)) {
+    const path = url.replace(/https?:\/\/[^/]+/, '');
+    return 'https://' + MIRRORS[mirrorIdx] + '.net' + path;
+  }
+  return url;
+}
+
+// HTML에서 이미지 URL 파싱 (정규식 — DOM 파싱 불필요)
+function parseImages(html) {
+  const found = [];
+  // <img ... src="URL" 패턴
+  const re = /src="(https?:\/\/[^"]+\/data\/file\/novel\/[^"]+\.(?:jpg|jpeg|png|webp))"/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    found.push(m[1]);
+  }
+  // 타임스탬프 숫자 기준 정렬
+  found.sort((a, b) => {
+    const na = parseInt((a.match(/(\d{10,})/) || [0,0])[1]);
+    const nb = parseInt((b.match(/(\d{10,})/) || [0,0])[1]);
+    return na - nb;
+  });
+  return [...new Set(found)];
+}
+
+// 제목 파싱
+function parseTitle(html) {
+  const m = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)
+    || html.match(/<title>([^<]+)<\/title>/i);
+  return m ? m[1].trim() : '';
+}
+
+let chapters = [], readSet = new Set(), currentIdx = 0, storeKey = '';
+
+function showSetup() {
+  document.getElementById('screen-setup').style.display = 'flex';
+  document.getElementById('screen-list').style.display = 'none';
+  document.getElementById('screen-reader').style.display = 'none';
+}
+function showList() {
+  document.getElementById('screen-setup').style.display = 'none';
+  document.getElementById('screen-list').style.display = 'block';
+  document.getElementById('screen-reader').style.display = 'none';
+  window.scrollTo(0,0);
+}
+function showReader() {
+  document.getElementById('screen-setup').style.display = 'none';
+  document.getElementById('screen-list').style.display = 'none';
+  document.getElementById('screen-reader').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function startReader() {
+  const s = parseInt(document.getElementById('inp-start').value);
+  const e = parseInt(document.getElementById('inp-end').value);
+  const err = document.getElementById('err-msg');
+  if (!s || !e || s > e) { err.style.display='block'; err.textContent='ID를 올바르게 입력하세요.'; return; }
+  if (e - s > 500) { err.style.display='block'; err.textContent='한 번에 최대 500화까지 가능해요.'; return; }
+  err.style.display = 'none';
+  chapters = [];
+  for (let id = s; id <= e; id++) chapters.push({ wr_id: id, index: id - s + 1 });
+  storeKey = 'read_' + s + '_' + e;
+  try { readSet = new Set(JSON.parse(localStorage.getItem(storeKey) || '[]')); } catch(e) { readSet = new Set(); }
+  document.getElementById('list-title').textContent = `총 ${chapters.length}화`;
+  buildGrid();
+  showList();
+}
+
+function buildGrid() {
+  const grid = document.getElementById('chapter-grid');
+  grid.innerHTML = '';
+  chapters.forEach((ch, i) => {
+    const b = document.createElement('button');
+    b.className = 'ch-btn' + (readSet.has(ch.wr_id) ? ' read' : '');
+    b.textContent = ch.index + '화';
+    b.id = 'ch' + ch.wr_id;
+    b.onclick = () => openChapter(i);
+    grid.appendChild(b);
+  });
+}
+
+async function openChapter(idx) {
+  currentIdx = idx;
+  showReader();
+  await loadChapter(idx);
+}
+
+// CORS 우회: 여러 프록시 순서대로 시도
+const PROXIES = [
+  u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  u => 'https://thingproxy.freeboard.io/fetch/' + u,
+];
+
+async function fetchWithProxy(url) {
+  for (let i = 0; i < PROXIES.length; i++) {
+    try {
+      const res = await fetch(PROXIES[i](url), { signal: AbortSignal.timeout(10000) });
+      if (res.ok) {
+        const text = await res.text();
+        if (text.length > 500) return text; // 유효한 응답
+      }
+    } catch(e) { /* 다음 프록시 시도 */ }
+  }
+  throw new Error('모든 프록시 실패');
+}
+
+async function loadChapter(idx) {
+  const ch = chapters[idx];
+  const content = document.getElementById('reader-content');
+  const titleEl = document.getElementById('reader-title');
+
+  document.getElementById('nav-ch').textContent = ch.index + '화';
+  document.getElementById('nav-sub').textContent = '';
+  document.getElementById('btn-prev').disabled = idx === 0;
+  document.getElementById('btn-next').disabled = idx === chapters.length - 1;
+  titleEl.textContent = ch.index + '화 로딩 중...';
+  content.innerHTML = '<div class="reader-loading"><div class="spinner"></div><div>불러오는 중...</div></div>';
+
+  const pageUrl = 'https://21.ondobook.net/bbs/board.php?bo_table=novel&wr_id=' + ch.wr_id;
+
+  try {
+    const html = await fetchWithProxy(pageUrl);
+    const title = parseTitle(html);
+    const imgs = parseImages(html);
+
+    if (title) { titleEl.textContent = title; document.getElementById('nav-ch').textContent = ch.index + '화'; }
+
+    if (!imgs.length) {
+      content.innerHTML = `<div class="error-box"><div class="icon">📭</div><p>이미지를 찾지 못했어요.<br>빈 화이거나 다른 소설 ID일 수 있어요.</p><button onclick="loadChapter(${idx})">다시 시도</button></div>`;
+      return;
+    }
+
+    content.innerHTML = '';
+    imgs.forEach((src, i) => {
+      const img = document.createElement('img');
+      img.alt = '';
+      img.loading = i < 4 ? 'eager' : 'lazy';
+      img.dataset.src = src;
+      img.dataset.mirror = '0';
+
+      img.onerror = function() {
+        const m = parseInt(this.dataset.mirror) + 1;
+        if (m < MIRRORS.length) {
+          this.dataset.mirror = m;
+          this.src = fixImgUrl(this.dataset.src, m);
+        }
+        // 실패해도 조용히 넘어감
+      };
+
+      img.src = fixImgUrl(src, 0);
+      content.appendChild(img);
+    });
+
+    // 읽음 표시
+    readSet.add(ch.wr_id);
+    try { localStorage.setItem(storeKey, JSON.stringify([...readSet])); } catch(e){}
+    const btn = document.getElementById('ch' + ch.wr_id);
+    if (btn) btn.className = 'ch-btn read';
+
+  } catch(e) {
+    content.innerHTML = `<div class="error-box"><div class="icon">⚠️</div><p>불러오기 실패<br><small style="font-size:11px;color:#555">${e.message}</small><br><br>인터넷 연결이나 프록시 서버 상태를 확인해보세요.</p><button onclick="loadChapter(${idx})">다시 시도</button></div>`;
+  }
+}
+
+function goPrev() { if (currentIdx > 0) { currentIdx--; loadChapter(currentIdx); window.scrollTo(0,0); } }
+function goNext() { if (currentIdx < chapters.length-1) { currentIdx++; loadChapter(currentIdx); window.scrollTo(0,0); } }
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('screen-reader').style.display === 'none') return;
+  if (e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowLeft') goPrev();
+});
+</script>
+</body>
+</html>
