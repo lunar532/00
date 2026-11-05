@@ -13,7 +13,7 @@
   .hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: 420px; }
   .hero h1 {
     font-family: var(--font-ko-display); font-weight: 900; text-transform: uppercase;
-    font-size: clamp(42px, 8.2vw, 108px); line-height: 0.92; letter-spacing: -0.03em;
+    font-size: clamp(40px, 6.6vw, 100px); line-height: 0.92; letter-spacing: -0.03em;
     background: var(--dirt), linear-gradient(175deg, #f1e6d6 0%, #b9a58e 38%, #6d86d8 70%, #2f7bff 100%);
     background-size: 220px 220px, auto;
     -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -69,7 +69,7 @@
   @media (max-width: 460px) { .doors { grid-template-columns: minmax(0, 1fr); } }
 </style>
 </head>
-<body data-page="index">
+<body data-page="index" data-layout="tri">
 <header id="site-header"></header>
 
 <main class="shell">
@@ -146,6 +146,14 @@
 <script src="assets/js/config.js"></script>
 <script src="assets/js/common.js"></script>
 <script src="assets/js/underground.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="assets/js/tunnel.js"></script>
+
 <script>
 (async () => {
   const box = document.getElementById('latest');

@@ -63,8 +63,9 @@
   addEventListener('pageshow', e => { if (e.persisted) document.querySelectorAll('.shaft').forEach(x => x.remove()); });
 
   // 떠나기: 사이트 안 링크를 누르면 엘리베이터를 타고 이동
+  const tri = document.body.dataset.layout === 'tri';
   document.addEventListener('click', e => {
-    if (reduce || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (tri || reduce || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const a = e.target.closest('a[href]');
     if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
     const url = new URL(a.href, location.href);
@@ -84,7 +85,7 @@
   });
 
   /* ================= 도트 생존자 ================= */
-  if (page === 'viewer' || page === 'map') return;
+  if (page === 'viewer' || page === 'map' || tri) return;
 
   let off = false;
   try { off = localStorage.getItem('ul-survivor') === 'off'; } catch (e) {}
