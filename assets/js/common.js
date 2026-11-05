@@ -5,7 +5,7 @@
   const client = hasKeys && window.supabase ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey) : null;
 
   const NAV = [
-    ['index.html', '거주구역'],
+    ['index.html', '홈'],
     ['viewer.html', '3D 뷰어'],
     ['map.html', '지도'],
     ['board.html', '게시판'],
@@ -28,11 +28,6 @@
     <path class="contour solid" stroke="url(#uvC)" style="animation-delay:-4.5s" d="M 1390 -40 C 1470 150, 1475 290, 1415 400 C 1350 520, 1305 640, 1390 790 C 1455 905, 1430 980, 1390 1060"/>
   </svg>`;
 
-  function depthReadout() {
-    // 방문할 때마다 조금씩 다른 계기판 수치
-    const r = (a, b, d) => (a + Math.random() * (b - a)).toFixed(d);
-    return `<span>심도 <i>-340 m</i></span><span>방사선 <i>${r(0.08, 0.19, 2)} μSv/h</i></span><span>산소 <i>${r(20.4, 21.0, 1)}%</i></span><span>지상 이탈 후 <i>${(212 + Math.floor(Math.random() * 3))}년</i></span><span class="pulse">● 생명유지 정상</span>`;
-  }
 
   function renderChrome() {
     const page = document.body.dataset.page || '';
@@ -46,17 +41,17 @@
       header.className = 'site-header';
       header.innerHTML = `
         <div class="inner">
-          <a class="wordmark" href="index.html"><b>Underlume</b><span>지하 거주구역 7</span></a>
+          <a class="wordmark" href="index.html"><b>Underlume</b></a>
           <nav class="nav" aria-label="사이트 메뉴">
             ${NAV.map(([href, label]) => `<a href="${href}" ${href.startsWith(page) && page ? 'aria-current="page"' : ''} ${href === 'account.html' ? 'id="nav-account"' : ''}>${label}</a>`).join('')}
           </nav>
         </div>
-        ${header.dataset.compact ? '' : `<div class="hud">${depthReadout()}</div>`}`;
+        `;
     }
     const footer = document.getElementById('site-footer');
     if (footer) {
       footer.className = 'site-footer';
-      footer.textContent = 'UNDERLUME · 잿빛 하늘 아래, 우리가 켠 빛으로 산다.';
+      footer.textContent = 'UNDERLUME';
     }
     refreshAccountLink();
   }

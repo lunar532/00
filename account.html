@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>출입 관리 · Underlume</title>
+<title>계정 · Underlume</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
   .wrap { display: grid; gap: 18px; max-width: 560px; }
@@ -32,7 +32,6 @@
 
 <main class="shell">
   <div>
-    <p class="eyebrow">Sector D · 출입 관리</p>
     <h1 class="page-title">계정</h1>
   </div>
   <div id="root"><p class="hint">불러오는 중…</p></div>
@@ -62,8 +61,8 @@ async function renderSignedOut(tab = 'login') {
         <button type="button" role="tab" id="tab-login" aria-selected="${tab === 'login'}">로그인</button>
         <button type="button" role="tab" id="tab-signup" aria-selected="${tab === 'signup'}">가입</button>
       </div>
-      ${locked ? '<p class="first-admin"><b>회원 전용 구역이에요.</b> 로그인한 사람만 들어올 수 있어요.</p>' : ''}
-      ${!hasAdmin ? '<p class="first-admin"><b>아직 관리자가 없어요.</b> 지금 가입하는 사람이 이 거주구역의 관리자가 돼요. 관리자는 사이트 이름, 공지, 게시판 잠금, 회원 등급을 정할 수 있어요.</p>' : ''}
+      ${locked ? '<p class="first-admin"><b>회원 전용</b> · 로그인이 필요해요.</p>' : ''}
+      ${!hasAdmin ? '<p class="first-admin"><b>첫 가입자가 관리자가 돼요.</b></p>' : ''}
       <section class="panel" id="panel"></section>
     </div>`;
   $('tab-login').onclick = () => renderSignedOut('login');
@@ -142,7 +141,7 @@ async function renderSignedIn(me) {
   root.innerHTML = `
     <div class="wrap ${isAdmin ? 'wide' : ''}">
       <section class="panel form">
-        <div class="row"><h2 class="section-title">내 정보</h2><span class="spacer"></span><span class="tag ${isAdmin ? 'admin' : ''}">${isAdmin ? '관리자' : '거주자'}</span></div>
+        <div class="row"><h2 class="section-title">내 정보</h2><span class="spacer"></span><span class="tag ${isAdmin ? 'admin' : ''}">${isAdmin ? '관리자' : '회원'}</span></div>
         <dl class="kv"><dt>이메일</dt><dd>${UL.esc(me.email)}</dd></dl>
         <form class="form" id="nick-f">
           <div class="field"><label for="nick">이름</label><input class="input" id="nick" maxlength="30" required value="${UL.esc(me.nickname)}"></div>
@@ -206,8 +205,8 @@ async function loadMembers(me) {
     <li>
       <span class="nm">${UL.esc(p.nickname)}${p.id === me.id ? ' (나)' : ''}</span>
       <span class="dt">${UL.fmtDate(p.created_at)}</span>
-      <span class="tag ${p.role === 'admin' ? 'admin' : ''}">${p.role === 'admin' ? '관리자' : '거주자'}</span>
-      <button class="btn small ghost" type="button" data-id="${p.id}" data-role="${p.role === 'admin' ? 'member' : 'admin'}">${p.role === 'admin' ? '거주자로' : '관리자로'}</button>
+      <span class="tag ${p.role === 'admin' ? 'admin' : ''}">${p.role === 'admin' ? '관리자' : '회원'}</span>
+      <button class="btn small ghost" type="button" data-id="${p.id}" data-role="${p.role === 'admin' ? 'member' : 'admin'}">${p.role === 'admin' ? '회원으로' : '관리자로'}</button>
     </li>`).join('');
   ul.querySelectorAll('button[data-id]').forEach(b => b.addEventListener('click', async () => {
     const { error } = await UL.client.rpc('set_member_role', { target: b.dataset.id, new_role: b.dataset.role });
