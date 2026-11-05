@@ -13,20 +13,116 @@
     ['account.html', '계정'],
   ];
 
+  // 동굴 벽: 노이즈에 빛을 비춰 울퉁불퉁한 암벽을 만들고, 그 위에 사파이어 광맥과 블랙라이트에 빛나는 금을 그어요.
   const BACKDROP = `
-  <svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg class="rock" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
-      <linearGradient id="uvA" x1="0" x2="1"><stop offset="0" stop-color="#63f0ff"/><stop offset="1" stop-color="#8b4dff"/></linearGradient>
-      <linearGradient id="uvB" x1="0" x2="1"><stop offset="0" stop-color="#8b4dff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient>
-      <linearGradient id="uvC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4fd8" stop-opacity="0"/><stop offset=".5" stop-color="#ff4fd8"/><stop offset="1" stop-color="#4d86ff" stop-opacity="0"/></linearGradient>
-      <filter id="uvglow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="rockwall" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.0085 0.014" numOctaves="6" seed="11" result="n"/>
+        <feDiffuseLighting in="n" surfaceScale="9" diffuseConstant="1.15" lighting-color="#9fb4ff" result="lit">
+          <feDistantLight azimuth="250" elevation="34"/>
+        </feDiffuseLighting>
+        <feComposite in="lit" in2="SourceGraphic" operator="arithmetic" k1="1" k2="0" k3="0" k4="0"/>
+      </filter>
+      <filter id="grit" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/>
+        <feColorMatrix values="0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0 0.2  0 0 0 -1.6 1.15"/>
+      </filter>
+      <filter id="jag" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="turbulence" baseFrequency="0.035" numOctaves="3" seed="5" result="t"/>
+        <feDisplacementMap in="SourceGraphic" in2="t" scale="26" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feGaussianBlur in="d" stdDeviation="2.6" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="d"/></feMerge>
+      </filter>
+      <linearGradient id="strata" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2a2130"/><stop offset=".35" stop-color="#3a2c26"/>
+        <stop offset=".6" stop-color="#2b2a3c"/><stop offset="1" stop-color="#1a2348"/>
+      </linearGradient>
     </defs>
-    <path class="contour" stroke="url(#uvA)" d="M -50 140 C 300 90, 420 430, 640 470 S 980 300, 1180 520 S 1500 900, 1700 860"/>
-    <path class="contour" stroke="url(#uvB)" style="animation-duration:52s" d="M -50 320 C 220 270, 380 650, 700 650 S 1100 430, 1320 610 S 1560 980, 1700 1010"/>
-    <path class="contour" stroke="url(#uvA)" style="animation-duration:46s;animation-direction:reverse" d="M 1650 70 C 1300 150, 1260 390, 1040 430 S 700 370, 520 570 S 260 910, -60 970"/>
-    <path class="contour solid" stroke="url(#uvC)" d="M 1210 -40 C 1110 150, 1105 290, 1170 400 C 1240 520, 1290 640, 1200 790 C 1130 905, 1160 980, 1210 1060"/>
-    <path class="contour solid" stroke="url(#uvC)" style="animation-delay:-4.5s" d="M 1390 -40 C 1470 150, 1475 290, 1415 400 C 1350 520, 1305 640, 1390 790 C 1455 905, 1430 980, 1390 1060"/>
-  </svg>`;
+    <rect width="1600" height="1000" fill="url(#strata)" filter="url(#rockwall)"/>
+    <rect width="1600" height="1000" filter="url(#grit)" opacity=".55"/>
+    <g filter="url(#jag)" fill="none" stroke-linecap="round">
+      <path class="vein" stroke="#2f7bff" stroke-width="2.2" d="M -40 610 C 180 560, 260 700, 460 650 S 760 520, 900 610 S 1180 760, 1320 690 S 1520 560, 1660 600"/>
+      <path class="vein v2" stroke="#9b5cff" stroke-width="1.4" d="M 980 -20 C 940 120, 1060 220, 1010 360 S 900 520, 960 640"/>
+      <path class="vein v3" stroke="#ff4fd8" stroke-width="1.1" d="M 120 -20 C 160 140, 60 260, 140 380 S 260 520, 200 700"/>
+      <path class="vein" stroke="#63f0ff" stroke-width="1" d="M 1600 220 C 1440 260, 1380 180, 1240 250 S 1080 330, 1000 300"/>
+    </g>
+  </svg>
+  <canvas class="drops" aria-hidden="true"></canvas>
+  <div class="lamp"></div>`;
+
+  // 헤드램프(마우스/손가락을 따라가는 불빛), 떠다니는 흙먼지, 벽을 타고 흐르는 물방울·땀방울
+  function initCave(root) {
+    const lamp = root.querySelector('.lamp');
+    const setLamp = (x, y) => { lamp.style.setProperty('--mx', x + 'px'); lamp.style.setProperty('--my', y + 'px'); };
+    setLamp(innerWidth * 0.62, innerHeight * 0.28);
+    addEventListener('pointermove', e => setLamp(e.clientX, e.clientY), { passive: true });
+
+    const cv = root.querySelector('canvas.drops');
+    const ctx = cv.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let W = 0, H = 0, dpr = 1, drops = [], dust = [];
+    function resize() {
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const area = W * H / 100000;
+      drops = Array.from({ length: Math.round(8 + area * 2.2) }, () => newDrop(true));
+      dust = Array.from({ length: Math.round(20 + area * 4) }, newDust);
+    }
+    function newDrop(anyY) {
+      return { x: Math.random() * W, y: anyY ? Math.random() * H : -10, r: 1.6 + Math.random() * 3.2, v: 0, hold: Math.random() * 200, trail: [] };
+    }
+    function newDust() {
+      return { x: Math.random() * W, y: Math.random() * H, r: 0.4 + Math.random() * 1.4, vx: (Math.random() - 0.5) * 0.12, vy: -0.03 - Math.random() * 0.1, a: 0.15 + Math.random() * 0.45 };
+    }
+    function drawDrop(d) {
+      // 꼬리 자국
+      if (d.trail.length > 1) {
+        ctx.beginPath(); ctx.moveTo(d.trail[0][0], d.trail[0][1]);
+        d.trail.forEach(([x, y]) => ctx.lineTo(x, y));
+        ctx.strokeStyle = 'rgba(170, 200, 255, 0.07)'; ctx.lineWidth = d.r * 0.9; ctx.lineCap = 'round'; ctx.stroke();
+      }
+      // 물방울 몸통 (위는 가늘고 아래는 둥글게)
+      const g = ctx.createRadialGradient(d.x - d.r * 0.3, d.y - d.r * 0.2, d.r * 0.1, d.x, d.y, d.r * 1.4);
+      g.addColorStop(0, 'rgba(255,255,255,0.75)');
+      g.addColorStop(0.25, 'rgba(160,190,255,0.28)');
+      g.addColorStop(1, 'rgba(40,70,160,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.ellipse(d.x, d.y, d.r, d.r * 1.25, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    function frame() {
+      ctx.clearRect(0, 0, W, H);
+      const mx = parseFloat(lamp.style.getPropertyValue('--mx')) || 0, my = parseFloat(lamp.style.getPropertyValue('--my')) || 0;
+      dust.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; }
+        if (p.x < -5) p.x = W + 5; if (p.x > W + 5) p.x = -5;
+        const near = Math.max(0, 1 - Math.hypot(p.x - mx, p.y - my) / 380);
+        ctx.fillStyle = `rgba(255, 226, 190, ${p.a * (0.25 + near * 1.2)})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+      drops.forEach((d, i) => {
+        if (d.hold > 0) d.hold -= 1;
+        else {
+          d.v = Math.min(d.v + 0.02 * d.r, 2.4);
+          d.y += d.v; d.x += Math.sin(d.y * 0.05) * 0.15;
+          d.trail.push([d.x, d.y]); if (d.trail.length > 40) d.trail.shift();
+          if (Math.random() < 0.012) { d.hold = 30 + Math.random() * 160; d.v = 0; }
+        }
+        drawDrop(d);
+        if (d.y > H + 20) drops[i] = newDrop(false);
+      });
+      if (!reduce && !document.hidden) requestAnimationFrame(frame);
+    }
+    resize();
+    addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && !reduce) requestAnimationFrame(frame); });
+    frame();
+  }
 
 
   function renderChrome() {
@@ -35,6 +131,7 @@
     bg.className = 'abyss';
     bg.innerHTML = BACKDROP;
     document.body.prepend(bg);
+    try { if (!['viewer', 'map'].includes(page)) initCave(bg); } catch (e) { /* 효과가 안 돼도 사이트는 그대로 */ }
 
     const header = document.getElementById('site-header');
     if (header) {
