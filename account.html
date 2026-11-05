@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>출입 관리 · Underlume</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<style>
+  .wrap { display: grid; gap: 18px; max-width: 560px; }
+  .wrap.wide { max-width: none; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; }
+  .tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; }
+  .tabs button { border: 0; background: transparent; color: var(--muted); padding: 6px 16px; border-radius: 999px; font-weight: 600; }
+  .tabs button[aria-selected="true"] { color: var(--text); background: rgba(139, 77, 255, 0.25); }
+  .first-admin { border: 1px solid rgba(255, 79, 216, 0.5); background: rgba(255, 79, 216, 0.08); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+  .kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 16px; margin: 0; }
+  .kv dt { color: var(--muted); font-size: 13px; }
+  .kv dd { margin: 0; overflow-wrap: anywhere; }
+  .members { list-style: none; margin: 0; padding: 0; display: grid; }
+  .members li { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .members .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .members .dt { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .switch { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+  .switch input { width: 18px; height: 18px; accent-color: var(--uv-pink); }
+  @media (max-width: 820px) { .wrap.wide { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body data-page="account">
+<header id="site-header"></header>
+
+<main class="shell">
+  <div>
+    <p class="eyebrow">Sector D · 출입 관리</p>
+    <h1 class="page-title">계정</h1>
+  </div>
+  <div id="root"><p class="hint">불러오는 중…</p></div>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
+<script>
+const root = document.getElementById('root');
+const $ = id => document.getElementById(id);
+const say = (id, text, kind) => { const el = $(id); el.className = 'msg ' + (kind || ''); el.textContent = text; };
+
+const qp = new URLSearchParams(location.search);
+const locked = qp.get('locked') === '1';
+// 로그인 뒤 돌아갈 페이지 (이 사이트 안의 페이지만 허용)
+const next = /^[a-z]+\.html(\?[\w=&%.-]*)?$/.test(qp.get('next') || '') ? qp.get('next') : null;
+
+async function renderSignedOut(tab = 'login') {
+  let hasAdmin = true;
+  try { const { data } = await UL.client.rpc('has_admin'); hasAdmin = !!data; } catch (e) {}
+  root.innerHTML = `
+    <div class="wrap">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-login" aria-selected="${tab === 'login'}">로그인</button>
+        <button type="button" role="tab" id="tab-signup" aria-selected="${tab === 'signup'}">가입</button>
+      </div>
+      ${locked ? '<p class="first-admin"><b>회원 전용 구역이에요.</b> 로그인한 사람만 들어올 수 있어요.</p>' : ''}
+      ${!hasAdmin ? '<p class="first-admin"><b>아직 관리자가 없어요.</b> 지금 가입하는 사람이 이 거주구역의 관리자가 돼요. 관리자는 사이트 이름, 공지, 게시판 잠금, 회원 등급을 정할 수 있어요.</p>' : ''}
+      <section class="panel" id="panel"></section>
+    </div>`;
+  $('tab-login').onclick = () => renderSignedOut('login');
+  $('tab-signup').onclick = () => renderSignedOut('signup');
+  const panel = $('panel');
+
+  if (tab === 'signup') {
+    panel.innerHTML = `
+      <form class="form" id="f">
+        <div class="field"><label for="s-nick">이름 (게시판에 보여요)</label><input class="input" id="s-nick" maxlength="30" required autocomplete="nickname"></div>
+        <div class="field"><label for="s-email">이메일</label><input class="input" id="s-email" type="email" required autocomplete="email"></div>
+        <div class="field"><label for="s-pw">비밀번호 (8자 이상)</label><input class="input" id="s-pw" type="password" minlength="8" required autocomplete="new-password"></div>
+        <div class="field"><label for="s-pw2">비밀번호 확인</label><input class="input" id="s-pw2" type="password" minlength="8" required autocomplete="new-password"></div>
+        <p class="msg" id="m"></p>
+        <button class="btn primary" type="submit" id="b">${hasAdmin ? '가입하기' : '관리자로 가입하기'}</button>
+      </form>`;
+    $('f').addEventListener('submit', async e => {
+      e.preventDefault();
+      if ($('s-pw').value !== $('s-pw2').value) return say('m', '비밀번호 두 칸이 서로 달라요.', 'error');
+      $('b').disabled = true;
+      const { data, error } = await UL.client.auth.signUp({
+        email: $('s-email').value.trim(),
+        password: $('s-pw').value,
+        options: { data: { nickname: $('s-nick').value.trim() }, emailRedirectTo: location.origin + location.pathname },
+      });
+      $('b').disabled = false;
+      if (error) return say('m', /database error|SIGNUP_CLOSED/i.test(error.message) ? '지금은 새 가입을 받지 않아요. 관리자에게 문의해 주세요.' : '가입하지 못했어요: ' + error.message, 'error');
+      if (!data.session) return say('m', '확인 메일을 보냈어요. 메일의 링크를 누르면 가입이 끝나요.', 'ok');
+      render();
+    });
+  } else {
+    panel.innerHTML = `
+      <form class="form" id="f">
+        <div class="field"><label for="l-email">이메일</label><input class="input" id="l-email" type="email" required autocomplete="email"></div>
+        <div class="field"><label for="l-pw">비밀번호</label><input class="input" id="l-pw" type="password" required autocomplete="current-password"></div>
+        <p class="msg" id="m"></p>
+        <div class="row"><button class="btn primary" type="submit" id="b">로그인</button><span class="spacer"></span><button class="btn ghost small" type="button" id="forgot">비밀번호를 잊었어요</button></div>
+      </form>`;
+    $('f').addEventListener('submit', async e => {
+      e.preventDefault();
+      $('b').disabled = true;
+      const { error } = await UL.client.auth.signInWithPassword({ email: $('l-email').value.trim(), password: $('l-pw').value });
+      $('b').disabled = false;
+      if (error) return say('m', /invalid/i.test(error.message) ? '이메일이나 비밀번호가 맞지 않아요.' : '로그인하지 못했어요: ' + error.message, 'error');
+      render();
+    });
+    $('forgot').addEventListener('click', async () => {
+      const email = $('l-email').value.trim();
+      if (!email) return say('m', '위 칸에 이메일을 먼저 적어 주세요.', 'error');
+      const { error } = await UL.client.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+      say('m', error ? '메일을 보내지 못했어요: ' + error.message : '비밀번호 재설정 메일을 보냈어요.', error ? 'error' : 'ok');
+    });
+  }
+}
+
+function renderRecovery() {
+  root.innerHTML = `
+    <div class="wrap"><section class="panel">
+      <form class="form" id="f">
+        <h2 class="section-title">새 비밀번호 정하기</h2>
+        <div class="field"><label for="r-pw">새 비밀번호 (8자 이상)</label><input class="input" id="r-pw" type="password" minlength="8" required autocomplete="new-password"></div>
+        <p class="msg" id="m"></p>
+        <button class="btn primary" type="submit">바꾸기</button>
+      </form>
+    </section></div>`;
+  $('f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const { error } = await UL.client.auth.updateUser({ password: $('r-pw').value });
+    if (error) return say('m', '바꾸지 못했어요: ' + error.message, 'error');
+    render();
+  });
+}
+
+async function renderSignedIn(me) {
+  const isAdmin = me.role === 'admin';
+  root.innerHTML = `
+    <div class="wrap ${isAdmin ? 'wide' : ''}">
+      <section class="panel form">
+        <div class="row"><h2 class="section-title">내 정보</h2><span class="spacer"></span><span class="tag ${isAdmin ? 'admin' : ''}">${isAdmin ? '관리자' : '거주자'}</span></div>
+        <dl class="kv"><dt>이메일</dt><dd>${UL.esc(me.email)}</dd></dl>
+        <form class="form" id="nick-f">
+          <div class="field"><label for="nick">이름</label><input class="input" id="nick" maxlength="30" required value="${UL.esc(me.nickname)}"></div>
+          <p class="msg" id="nick-m"></p>
+          <div class="row"><button class="btn small" type="submit">이름 바꾸기</button><span class="spacer"></span><button class="btn ghost small" type="button" id="logout">로그아웃</button></div>
+        </form>
+      </section>
+      ${isAdmin ? `
+      <div style="display:grid;gap:18px;min-width:0">
+        <section class="panel">
+          <form class="form" id="set-f">
+            <h2 class="section-title">관리자 설정</h2>
+            <div class="field"><label for="set-name">사이트 이름</label><input class="input" id="set-name" maxlength="40"></div>
+            <div class="field"><label for="set-notice">첫 화면 공지 (비워두면 숨겨요)</label><textarea class="input" id="set-notice" maxlength="1000" style="min-height:90px"></textarea></div>
+            <label class="switch" for="set-open"><input type="checkbox" id="set-open"> 게시판 열기 (끄면 누구도 새 글·댓글을 못 써요)</label>
+            <label class="switch" for="set-private"><input type="checkbox" id="set-private"> 회원 전용 (켜면 로그인한 사람만 사이트와 게시판을 볼 수 있어요)</label>
+            <label class="switch" for="set-signup"><input type="checkbox" id="set-signup"> 새 가입 받기 (끄면 나 말고는 아무도 가입할 수 없어요)</label>
+            <p class="msg" id="set-m"></p>
+            <div class="row"><button class="btn primary small" type="submit">저장</button></div>
+          </form>
+        </section>
+        <section class="panel">
+          <h2 class="section-title" style="margin-bottom:6px">회원</h2>
+          <ul class="members" id="members"><li class="hint">불러오는 중…</li></ul>
+          <p class="msg" id="mem-m"></p>
+        </section>
+      </div>` : ''}
+    </div>`;
+
+  $('logout').onclick = async () => { await UL.client.auth.signOut(); location.reload(); };
+  $('nick-f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const { error } = await UL.client.from('profiles').update({ nickname: $('nick').value.trim() }).eq('id', me.id);
+    say('nick-m', error ? '바꾸지 못했어요: ' + error.message : '이름을 바꿨어요.', error ? 'error' : 'ok');
+    if (!error) UL.refreshAccountLink();
+  });
+
+  if (!isAdmin) return;
+  const s = await UL.getSettings();
+  if (s) { $('set-name').value = s.site_name || ''; $('set-notice').value = s.notice || ''; $('set-open').checked = s.board_open; $('set-private').checked = s.members_only; $('set-signup').checked = s.allow_signup; }
+  $('set-f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const { error } = await UL.client.from('site_settings').update({
+      site_name: $('set-name').value.trim() || 'UNDERLUME',
+      notice: $('set-notice').value.trim(),
+      board_open: $('set-open').checked,
+      members_only: $('set-private').checked,
+      allow_signup: $('set-signup').checked,
+      updated_at: new Date().toISOString(),
+    }).eq('id', 1);
+    say('set-m', error ? '저장하지 못했어요: ' + error.message : '저장했어요.', error ? 'error' : 'ok');
+  });
+  loadMembers(me);
+}
+
+async function loadMembers(me) {
+  const ul = $('members');
+  const { data, error } = await UL.client.from('profiles').select('id, nickname, role, created_at').order('created_at');
+  if (error) { ul.innerHTML = `<li class="msg error">불러오지 못했어요: ${UL.esc(error.message)}</li>`; return; }
+  ul.innerHTML = data.map(p => `
+    <li>
+      <span class="nm">${UL.esc(p.nickname)}${p.id === me.id ? ' (나)' : ''}</span>
+      <span class="dt">${UL.fmtDate(p.created_at)}</span>
+      <span class="tag ${p.role === 'admin' ? 'admin' : ''}">${p.role === 'admin' ? '관리자' : '거주자'}</span>
+      <button class="btn small ghost" type="button" data-id="${p.id}" data-role="${p.role === 'admin' ? 'member' : 'admin'}">${p.role === 'admin' ? '거주자로' : '관리자로'}</button>
+    </li>`).join('');
+  ul.querySelectorAll('button[data-id]').forEach(b => b.addEventListener('click', async () => {
+    const { error } = await UL.client.rpc('set_member_role', { target: b.dataset.id, new_role: b.dataset.role });
+    say('mem-m', error ? error.message : '등급을 바꿨어요.', error ? 'error' : 'ok');
+    if (!error) {
+      if (b.dataset.id === me.id) location.reload(); else loadMembers(me);
+    }
+  }));
+}
+
+async function render() {
+  const me = await UL.getProfile();
+  if (me && next) { location.replace(next); return; }
+  if (me) renderSignedIn(me); else renderSignedOut();
+  UL.refreshAccountLink();
+}
+
+(async () => {
+  if (!UL.configured) { root.innerHTML = UL.setupNotice(); return; }
+  UL.client.auth.onAuthStateChange(event => { if (event === 'PASSWORD_RECOVERY') renderRecovery(); });
+  render();
+})();
+</script>
+</body>
+</html>
