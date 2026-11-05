@@ -137,13 +137,12 @@
     const tri = document.body.dataset.layout === 'tri';
     if (header && tri) {
       // 삼분할: 왼쪽 메뉴 / 오른쪽 위 내용 / 아래 갱도
-      const DEPTHS = { 'index.html': 120, 'viewer.html': 180, 'map.html': 20, 'board.html': 240, 'refs.html': 310, 'account.html': 40 };
       header.className = 'site-side';
       header.innerHTML = `
         <a class="wordmark" href="index.html"><b>Underlume</b></a>
         <nav class="side-nav" aria-label="사이트 메뉴">
           ${NAV.map(([href, label], i) => `<a href="${href}" data-station="${i}" ${href.startsWith(page) && page ? 'aria-current="page"' : ''} ${href === 'account.html' ? 'id="nav-account"' : ''}>
-            <span class="st">${String(i + 1).padStart(2, '0')}</span><span class="lb">${label}</span><span class="dp">-${DEPTHS[href]}m</span></a>`).join('')}
+            <span class="st">${String(i + 1).padStart(2, '0')}</span><span class="lb">${label}</span></a>`).join('')}
         </nav>`;
       const scroll = document.createElement('div');
       scroll.className = 'content-scroll';
