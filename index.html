@@ -7,25 +7,24 @@
 <meta name="description" content="3D 스캔 뷰어, 지도, 게시판, 참고자료">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
-  .hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: 420px; }
+  .hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: 420px; }
   .hero h1 {
-    font-family: var(--font-display); font-style: italic; font-weight: 500;
-    font-size: clamp(56px, 11vw, 120px); line-height: 0.95; letter-spacing: -0.01em;
-    background: linear-gradient(105deg, #e7ecff 10%, var(--uv-cyan) 40%, var(--uv) 65%, var(--uv-pink));
+    font-family: var(--font-ko-display); font-weight: 900; text-transform: uppercase;
+    font-size: clamp(42px, 8.2vw, 108px); line-height: 0.92; letter-spacing: -0.03em;
+    background: var(--dirt), linear-gradient(175deg, #f1e6d6 0%, #b9a58e 38%, #6d86d8 70%, #2f7bff 100%);
+    background-size: 220px 220px, auto;
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 0 28px rgba(139, 77, 255, 0.45));
+    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.9)) drop-shadow(0 0 26px rgba(47, 123, 255, 0.4));
   }
-  .hero .ko { font-family: var(--font-ko-display); font-size: clamp(20px, 3vw, 26px); margin: 14px 0 12px; }
+  .hero .ko { font-family: var(--font-ko-display); font-weight: 700; font-size: clamp(18px, 2.6vw, 23px); margin: 16px 0 10px; color: #d9cbb8; }
   .hero .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
   .figure { position: relative; aspect-ratio: 3 / 4; max-width: 100%; justify-self: center; width: min(360px, 100%); }
   .figure svg { width: 100%; height: 100%; overflow: visible; }
   .figure .c { fill: none; stroke-linecap: round; filter: url(#heroglow); }
-  .figure .scan { animation: scan 6s ease-in-out infinite; }
-  @keyframes scan { 0%, 100% { transform: translateY(0); opacity: .25; } 50% { transform: translateY(320px); opacity: .9; } }
-  @media (prefers-reduced-motion: reduce) { .figure .scan { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .figure .drip { display: none; } }
 
   .notice { display: flex; gap: 12px; align-items: baseline; }
   .notice .eyebrow { flex: none; }
@@ -35,20 +34,23 @@
   .door {
     position: relative; text-decoration: none; color: var(--text);
     display: grid; gap: 8px; align-content: start; min-height: 130px;
-    padding: 20px; border-radius: var(--radius);
-    background: linear-gradient(160deg, rgba(15, 82, 186, 0.28), rgba(9, 20, 62, 0.65) 60%);
-    border: 1px solid var(--line); overflow: hidden;
-    transition: border-color .2s, box-shadow .2s, transform .2s;
+    padding: 20px;
+    background: var(--sweat), linear-gradient(165deg, rgba(30, 22, 19, 0.82), rgba(10, 13, 32, 0.92) 70%), var(--dirt), #221a16;
+    background-size: 160px 120px, auto, 220px 220px, auto;
+    clip-path: polygon(0 4%, 5% 0, 62% 2%, 96% 0, 100% 6%, 99% 58%, 100% 95%, 94% 100%, 40% 98%, 4% 100%, 0 93%, 1% 40%);
+    overflow: hidden;
+    transition: transform .2s, filter .2s;
   }
+  .door::before { content: ""; position: absolute; inset: 0; border-top: 2px solid rgba(47, 123, 255, 0.55); pointer-events: none; }
   .door::after {
-    content: ""; position: absolute; right: -40px; bottom: -60px; width: 160px; height: 160px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 79, 216, 0.35), transparent 70%);
+    content: ""; position: absolute; left: 50%; top: -40%; width: 240px; height: 240px; transform: translateX(-50%); border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 214, 160, 0.22), transparent 65%);
     opacity: 0; transition: opacity .25s;
   }
-  .door:hover { border-color: var(--line-hi); box-shadow: 0 0 30px -6px rgba(139, 77, 255, 0.6); transform: translateY(-2px); color: var(--text); }
+  .door:hover { transform: translateY(-3px); filter: brightness(1.15); color: var(--text); }
   .door:hover::after { opacity: 1; }
   .door .code { font-family: var(--font-mono); font-size: 11px; color: var(--uv-cyan); letter-spacing: .12em; }
-  .door h3 { font-family: var(--font-ko-display); font-size: 20px; }
+  .door h3 { font-family: var(--font-ko-display); font-weight: 900; font-size: 21px; color: #f0e6d8; text-shadow: 0 -1px 0 #000; }
   .door p { margin: 0; color: var(--muted); font-size: 13px; }
 
   .latest { display: grid; gap: 14px; }
@@ -84,16 +86,37 @@
     <div class="figure" aria-hidden="true">
       <svg viewBox="0 0 300 400">
         <defs>
-          <linearGradient id="hg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63f0ff"/><stop offset=".55" stop-color="#8b4dff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient>
-          <linearGradient id="hg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff4fd8" stop-opacity="0"/><stop offset=".5" stop-color="#ff4fd8"/><stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/></linearGradient>
+          <linearGradient id="hg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63f0ff"/><stop offset=".55" stop-color="#7a5cff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient>
           <filter id="heroglow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="rough" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="5"/></filter>
+          <filter id="mud" x="-40%" y="-40%" width="180%" height="180%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="4" seed="2" result="n"/>
+            <feColorMatrix in="n" values="0 0 0 0 .38  0 0 0 0 .27  0 0 0 0 .18  0 0 0 -2.2 1.35" result="g"/>
+            <feComposite in="g" in2="SourceAlpha" operator="in" result="c"/>
+            <feGaussianBlur in="c" stdDeviation=".6"/>
+          </filter>
+          <radialGradient id="bead" cx=".35" cy=".3" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".3" stop-color="#bcd2ff" stop-opacity=".45"/><stop offset="1" stop-color="#2f5bd0" stop-opacity="0"/></radialGradient>
         </defs>
-        <!-- 허리와 골반의 곡선을 닮은 두 줄기 빛 -->
-        <path class="c" stroke="url(#hg1)" stroke-width="2.4" d="M 110 0 C 92 60, 88 110, 104 150 C 120 190, 128 205, 96 250 C 66 292, 64 340, 92 400"/>
-        <path class="c" stroke="url(#hg1)" stroke-width="2.4" d="M 190 0 C 208 60, 212 110, 196 150 C 180 190, 172 205, 204 250 C 234 292, 236 340, 208 400"/>
-        <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 128 0 C 114 70, 112 115, 124 150 C 136 185, 142 210, 118 250 C 96 290, 96 340, 116 400"/>
-        <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 172 0 C 186 70, 188 115, 176 150 C 164 185, 158 210, 182 250 C 204 290, 204 340, 184 400"/>
-        <line class="scan" x1="40" y1="30" x2="260" y2="30" stroke="url(#hg2)" stroke-width="1.5"/>
+        <!-- 흙이 묻은 자리 -->
+        <g filter="url(#mud)" opacity=".5">
+          <ellipse cx="104" cy="160" rx="26" ry="40"/><ellipse cx="200" cy="230" rx="30" ry="46"/>
+          <ellipse cx="88" cy="300" rx="22" ry="34"/><ellipse cx="214" cy="110" rx="18" ry="28"/>
+        </g>
+        <!-- 허리와 골반의 곡선 -->
+        <g filter="url(#rough)">
+          <path class="c" stroke="url(#hg1)" stroke-width="2.6" d="M 110 0 C 92 60, 88 110, 104 150 C 120 190, 128 205, 96 250 C 66 292, 64 340, 92 400" id="curveL"/>
+          <path class="c" stroke="url(#hg1)" stroke-width="2.6" d="M 190 0 C 208 60, 212 110, 196 150 C 180 190, 172 205, 204 250 C 234 292, 236 340, 208 400" id="curveR"/>
+          <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 128 0 C 114 70, 112 115, 124 150 C 136 185, 142 210, 118 250 C 96 290, 96 340, 116 400"/>
+          <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 172 0 C 186 70, 188 115, 176 150 C 164 185, 158 210, 182 250 C 204 290, 204 340, 184 400"/>
+        </g>
+        <!-- 땀방울 -->
+        <g fill="url(#bead)">
+          <ellipse cx="101" cy="132" rx="4" ry="5"/><ellipse cx="114" cy="196" rx="3" ry="4"/><ellipse cx="80" cy="282" rx="5" ry="6"/>
+          <ellipse cx="199" cy="128" rx="3.4" ry="4.4"/><ellipse cx="186" cy="206" rx="4.4" ry="5.6"/><ellipse cx="222" cy="300" rx="3" ry="4"/>
+          <ellipse cx="150" cy="176" rx="2.4" ry="3"/><ellipse cx="146" cy="262" rx="3" ry="3.8"/>
+          <ellipse class="drip" rx="3.6" ry="4.8"><animateMotion dur="7s" repeatCount="indefinite" rotate="0"><mpath href="#curveL"/></animateMotion></ellipse>
+          <ellipse class="drip" rx="3" ry="4"><animateMotion dur="9s" begin="-3s" repeatCount="indefinite" rotate="0"><mpath href="#curveR"/></animateMotion></ellipse>
+        </g>
       </svg>
     </div>
   </section>
