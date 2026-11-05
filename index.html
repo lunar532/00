@@ -4,129 +4,104 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>빛마루</title>
-<meta name="description" content="닿으면 피고, 끌면 끈적하게 흐르는 밤의 정원">
+<meta name="description" content="누르면 피어나고, 끌면 흐르는 밤의 잉크. 3D 집 뷰어, 지도, 게시판.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
-  .garden-wrap { position: relative; border-radius: 28px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); min-height: 520px; height: min(72vh, 680px); }
+  .stage { position: relative; border-radius: 4px; overflow: hidden; height: min(82vh, 760px); min-height: 520px; background: #0a0307; isolation: isolate; }
   #garden { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
-  .garden-copy { position: absolute; left: 28px; top: 26px; right: 28px; pointer-events: none; display: grid; gap: 8px; max-width: 560px; }
-  .garden-copy h1 { font-weight: 800; font-size: clamp(32px, 5.6vw, 60px); line-height: 1.05; color: #fff0f5; text-shadow: 0 0 30px rgba(255, 77, 141, 0.55), 0 2px 0 rgba(0, 0, 0, 0.25); }
-  .garden-copy p { margin: 0; color: #f3c9d8; font-size: 15px; }
-  .garden-copy .eyebrow { color: #ffb766; }
-  .tools {
-    position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-    padding: 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line);
-    backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  .stage-copy { position: absolute; left: clamp(20px, 5vw, 64px); bottom: clamp(84px, 14vh, 140px); pointer-events: none; display: grid; gap: 14px; max-width: 620px; color: #f6e7ee; }
+  .stage-copy .kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: rgba(246, 231, 238, 0.6); margin: 0; }
+  .stage-copy h1 { font-family: var(--font-serif); font-weight: 300; font-size: clamp(40px, 7vw, 88px); line-height: 1.04; letter-spacing: -0.03em; }
+  .stage-copy h1 em { font-family: 'Cormorant Garamond', var(--font-serif); font-style: italic; font-weight: 400; color: #ffb3cc; }
+  .stage-copy p { margin: 0; font-size: 15px; color: rgba(246, 231, 238, 0.72); font-weight: 300; }
+  .rail {
+    position: absolute; left: clamp(20px, 5vw, 64px); right: clamp(20px, 5vw, 64px); bottom: 22px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding-top: 14px; border-top: 1px solid rgba(246, 231, 238, 0.16); color: rgba(246, 231, 238, 0.7);
+    font-size: 13px;
   }
-  .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--text) 6%, transparent); }
-  .seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); }
-  .seg button[aria-pressed="true"] { background: var(--surface-solid); color: var(--text); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
-  .count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 0 6px; }
-  .toast { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); padding: 8px 14px; border-radius: 999px; background: var(--surface-solid); border: 1px solid var(--line); font-size: 13px; box-shadow: var(--shadow); }
+  .rail .seg { display: inline-flex; gap: 14px; }
+  .rail button { background: none; border: 0; padding: 4px 0; color: rgba(246, 231, 238, 0.55); font-size: 13px; letter-spacing: 0.04em; border-bottom: 1px solid transparent; }
+  .rail button:hover { color: #f6e7ee; }
+  .rail button[aria-pressed="true"] { color: #f6e7ee; border-bottom-color: #ff8fb1; }
+  .rail .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(246, 231, 238, 0.4); }
 
-  .promise { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; }
-  .promise .q { font-size: clamp(18px, 2.4vw, 22px); font-weight: 500; line-height: 1.5; margin: 0; min-height: 3em; display: flex; align-items: center; }
-  .promise .dot { width: 46px; height: 46px; border-radius: 50%; background: conic-gradient(from 0deg, var(--aurora-1), var(--aurora-3), var(--aurora-2), var(--aurora-4), var(--aurora-1)); animation: spin 14s linear infinite; box-shadow: 0 0 24px color-mix(in srgb, var(--aurora-3) 70%, transparent); }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .verse { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding-block: 24px; border-bottom: 1px solid var(--line); }
+  .verse .q { margin: 0; font-family: var(--font-serif); font-weight: 300; font-size: clamp(22px, 3.4vw, 36px); line-height: 1.4; letter-spacing: -0.02em; min-height: 2.8em; }
+  .verse .btn { font-weight: 400; }
 
-  .doors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-  .door {
-    --mx: 50%; --my: 0%;
-    position: relative; display: grid; gap: 10px; align-content: start; min-height: 170px; padding: 22px;
-    text-decoration: none; color: var(--text); border-radius: var(--radius); overflow: hidden;
-    background: radial-gradient(260px circle at var(--mx) var(--my), color-mix(in srgb, var(--accent) 28%, transparent), transparent 70%), var(--surface);
-    border: 1px solid var(--line); box-shadow: var(--shadow);
-    transition: transform .25s, border-color .25s;
-  }
-  .door:hover { transform: translateY(-4px); border-color: var(--line-hi); color: var(--text); }
-  .door .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
-  .door .ic svg { width: 22px; height: 22px; }
-  .door h3 { font-size: 18px; font-weight: 800; }
-  .door p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
-  .door .go { margin-top: auto; font-size: 13px; color: var(--accent); font-weight: 600; }
+  .index { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+  .index a { display: grid; gap: 10px; align-content: start; padding: 26px 22px 30px 0; text-decoration: none; color: var(--text); border-bottom: 1px solid var(--line); position: relative; }
+  .index a + a { padding-left: 22px; border-left: 1px solid var(--line); }
+  .index .n { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.2em; }
+  .index h3 { font-family: var(--font-serif); font-weight: 400; font-size: 24px; letter-spacing: -0.02em; transition: color .3s; }
+  .index p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.7; font-weight: 300; }
+  .index a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
+  .index a + a::after { left: 22px; }
+  .index a:hover h3 { color: var(--accent); }
+  .index a:hover::after { transform: scaleX(1); }
 
   .latest ul { list-style: none; margin: 0; padding: 0; display: grid; }
-  .latest li a { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--text); min-width: 0; }
+  .latest li a { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--text); min-width: 0; }
   .latest li a:hover .t { color: var(--accent); }
   .latest .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .latest .m { color: var(--muted); font-size: 12px; font-family: var(--font-mono); white-space: nowrap; }
 
-  @media (max-width: 900px) { .doors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 520px) {
-    .doors { grid-template-columns: minmax(0, 1fr); }
-    .garden-wrap { height: auto; min-height: 0; display: grid; grid-template-rows: 440px auto; }
-    #garden { position: relative; grid-row: 1; }
-    .tools { position: static; grid-row: 2; margin: 8px; border-radius: 16px; }
-    .garden-copy { left: 18px; right: 18px; top: 18px; }
-    .promise { grid-template-columns: auto minmax(0, 1fr); }
-    .promise .btn { grid-column: 1 / -1; }
+  @media (max-width: 900px) {
+    .index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .index a:nth-child(3) { padding-left: 0; border-left: 0; }
+    .index a:nth-child(3)::after { left: 0; }
   }
-  @media (prefers-reduced-motion: reduce) { .promise .dot { animation: none; } }
+  @media (max-width: 520px) {
+    .index { grid-template-columns: minmax(0, 1fr); }
+    .index a, .index a + a { padding-left: 0; border-left: 0; }
+    .index a + a::after { left: 0; }
+    .verse { grid-template-columns: minmax(0, 1fr); }
+    .stage-copy { bottom: 132px; }
+  }
 </style>
 </head>
 <body data-page="index">
 <header id="site-header"></header>
 
 <main class="shell">
-  <section class="garden-wrap" id="garden-wrap" data-time="day" aria-label="빛의 정원">
-    <canvas id="garden" aria-label="화면을 누르면 그 자리에 빛나는 꽃이 피어나요"></canvas>
-    <div class="garden-copy">
-      <p class="eyebrow">빛마루 · 밤에 피는 정원</p>
-      <h1 id="site-name">닿으면 피어나요</h1>
-      <p id="garden-hint">누르면 꽃이 피고, 천천히 끌면 꿀처럼 끈적한 빛이 흘러내려요.</p>
+  <section class="stage" id="garden-wrap" aria-label="밤의 잉크">
+    <canvas id="garden" aria-label="누르면 잉크가 피어나고, 끌면 손끝을 따라 흘러요"></canvas>
+    <div class="stage-copy">
+      <p class="kicker">Bitmaru — Nocturne</p>
+      <h1 id="site-name">천천히,<br><em>번지게.</em></h1>
+      <p id="garden-hint">누르면 피어나고, 끌면 흐릅니다.</p>
     </div>
-    <div class="toast" id="toast" hidden></div>
-    <div class="tools" role="toolbar" aria-label="정원 도구">
-      <div class="seg" role="group" aria-label="꽃 종류" id="kind-seg">
-        <button type="button" data-kind="0" aria-pressed="true">별꽃</button>
-        <button type="button" data-kind="1" aria-pressed="false">이슬꽃</button>
-        <button type="button" data-kind="2" aria-pressed="false">나선꽃</button>
+    <div class="rail" role="toolbar" aria-label="잉크 도구">
+      <span class="label">Tone</span>
+      <div class="seg" role="group" aria-label="색" id="pal-seg">
+        <button type="button" data-pal="rose" aria-pressed="true">로즈</button>
+        <button type="button" data-pal="amber" aria-pressed="false">앰버</button>
+        <button type="button" data-pal="velvet" aria-pressed="false">벨벳</button>
       </div>
-      <div class="seg" role="group" aria-label="분위기" id="time-seg">
-        <button type="button" data-time="dawn" aria-pressed="false">장밋빛</button>
-        <button type="button" data-time="day" aria-pressed="true">벨벳</button>
-        <button type="button" data-time="dusk" aria-pressed="false">와인</button>
-        <button type="button" data-time="night" aria-pressed="false">자정</button>
-      </div>
-      <button class="btn small" type="button" id="sound-btn" aria-pressed="false">소리 켜기</button>
-      <button class="btn small" type="button" id="wind-btn">바람</button>
-      <button class="btn small" type="button" id="plant-btn">꽃 심기</button>
       <span class="spacer"></span>
-      <span class="count" id="count">0송이</span>
-      <button class="btn small ghost" type="button" id="clear-btn">비우기</button>
-      <button class="btn small primary" type="button" id="share-btn">내 정원 링크 복사</button>
+      <button type="button" id="bloom-btn">피우기</button>
+      <button type="button" id="sound-btn" aria-pressed="false">소리 켜기</button>
+      <button type="button" id="clear-btn">지우기</button>
     </div>
   </section>
 
-  <section class="panel promise" aria-live="polite">
-    <span class="dot" aria-hidden="true"></span>
+  <section class="verse" aria-live="polite">
     <p class="q" id="promise"></p>
-    <button class="btn small" type="button" id="promise-btn">다른 문장</button>
+    <button class="btn ghost small" type="button" id="promise-btn">다음 문장</button>
   </section>
 
-  <section class="doors" aria-label="메뉴" id="doors">
-    <a class="door" href="viewer.html">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
-      <h3>3D 뷰어</h3><p>폰으로 스캔한 집 파일을 열고, 평면도·걸어보기·치수 재기·벽에 사진 걸기를 해요.</p><span class="go">열기 →</span>
-    </a>
-    <a class="door" href="map.html">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg></span>
-      <h3>지도</h3><p>3D 모델을 실제 장소에 놓고, 핀을 눌러 바로 둘러봐요.</p><span class="go">열기 →</span>
-    </a>
-    <a class="door" href="board.html">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
-      <h3>게시판</h3><p>글과 댓글로 이야기를 나눠요.</p><span class="go">열기 →</span>
-    </a>
-    <a class="door" href="refs.html">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></span>
-      <h3>참고자료</h3><p>GitHub 추천 코드 10개. 들를 때마다 바뀌어요.</p><span class="go">열기 →</span>
-    </a>
-  </section>
+  <nav class="index" aria-label="메뉴">
+    <a href="viewer.html"><span class="n">01</span><h3>3D 뷰어</h3><p>스캔한 공간을 열고, 걷고, 재고, 벽에 사진을 겁니다.</p></a>
+    <a href="map.html"><span class="n">02</span><h3>지도</h3><p>모델을 실제 장소에 두고, 핀을 눌러 들어갑니다.</p></a>
+    <a href="board.html"><span class="n">03</span><h3>게시판</h3><p>글과 댓글을 남깁니다.</p></a>
+    <a href="refs.html"><span class="n">04</span><h3>참고자료</h3><p>들를 때마다 바뀌는 GitHub 추천 코드 열 개.</p></a>
+  </nav>
 
-  <section class="panel latest" id="latest-panel">
+  <section class="latest" id="latest-panel">
     <div class="row"><h2 class="section-title">새 글</h2><span class="spacer"></span><a href="board.html">전체 보기</a></div>
     <div id="latest"><p class="hint">불러오는 중…</p></div>
   </section>
@@ -139,31 +114,20 @@
 <script src="assets/js/common.js"></script>
 <script src="assets/js/garden.js"></script>
 <script>
-// 오늘의 문장 (빛마루의 약속)
-const PROMISES = [
-  '서두르지 마. 밤은 길어.',
-  '가장 진한 향은 늦게 피는 꽃에서 난다.',
-  '빛은 천천히, 아주 천천히 번진다.',
-  '닿는 순간 피어나는 것들이 있다.',
-  '달콤한 건 언제나 조금씩 흘러내린다.',
-  '이 정원에선 아무도 시간을 재지 않는다.',
-  '온기는 가까이 있을 때 가장 선명하다.',
-  '오늘 밤의 빛은 오늘 밤에만 핀다.',
+const LINES = [
+  '서두르지 않아도, 밤은 우리 편이다.',
+  '가장 깊은 색은 천천히 스며든다.',
+  '닿은 자리마다 온기가 남는다.',
+  '말하지 않아도 번지는 것들이 있다.',
+  '빛은 어둠이 있어야 비로소 보인다.',
+  '조용한 것이 가장 오래 남는다.',
 ];
-let pi = Math.floor(Math.random() * PROMISES.length);
-const pEl = document.getElementById('promise');
-function showPromise() { pEl.textContent = PROMISES[pi]; }
-document.getElementById('promise-btn').addEventListener('click', () => { pi = (pi + 1 + Math.floor(Math.random() * (PROMISES.length - 1))) % PROMISES.length; showPromise(); });
-showPromise();
+let li = Math.floor(Math.random() * LINES.length);
+const qEl = document.getElementById('promise');
+const show = () => { qEl.textContent = LINES[li]; };
+document.getElementById('promise-btn').addEventListener('click', () => { li = (li + 1) % LINES.length; show(); });
+show();
 
-// 카드 위에 손가락·마우스를 따라가는 빛
-document.querySelectorAll('.door').forEach(d => d.addEventListener('pointermove', e => {
-  const r = d.getBoundingClientRect();
-  d.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-  d.style.setProperty('--my', (e.clientY - r.top) + 'px');
-}));
-
-// 새 글
 (async () => {
   const box = document.getElementById('latest');
   if (!UL.configured) { document.getElementById('latest-panel').hidden = true; return; }

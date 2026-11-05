@@ -31,7 +31,8 @@
   --font-ko-display: 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
   --font-display: 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
-  --radius: 18px;
+  --font-serif: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  --radius: 10px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -84,7 +85,7 @@ img { max-width: 100%; }
 .sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; background: var(--bg); }
 .sky i {
   position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%;
-  filter: blur(80px); opacity: 0.6;
+  filter: blur(90px); opacity: 0.32;
   animation: drift 28s ease-in-out infinite alternate;
 }
 .sky i:nth-child(1) { background: var(--aurora-1); left: -15vmax; top: -20vmax; }
@@ -100,18 +101,17 @@ img { max-width: 100%; }
   max-width: 1160px; margin: 0 auto;
   display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap;
   padding: 8px 10px 8px 18px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
-  backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  box-shadow: var(--shadow);
+  background: color-mix(in srgb, var(--bg) 72%, transparent); border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+  backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2);
 }
 .wordmark { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); margin-right: auto; }
 .wordmark .mark { width: 26px; height: 26px; flex: none; }
-.wordmark b { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; }
+.wordmark b { font-family: var(--font-serif); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
 .wordmark span { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
 .nav { display: flex; gap: 2px; flex-wrap: wrap; }
 .nav a { text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; padding: 7px 13px; border-radius: 999px; transition: background .2s, color .2s; }
 .nav a:hover { color: var(--text); background: rgba(127, 150, 200, 0.14); }
-.nav a[aria-current="page"] { color: var(--accent-ink); background: var(--accent); }
+.nav a[aria-current="page"] { color: var(--text); background: transparent; box-shadow: inset 0 -1px 0 var(--accent); border-radius: 0; }
 .theme-btn { border: 1px solid var(--line); background: transparent; border-radius: 999px; width: 36px; height: 36px; display: grid; place-items: center; color: var(--text); flex: none; }
 .theme-btn:hover { background: rgba(127, 150, 200, 0.14); }
 .theme-btn svg { width: 18px; height: 18px; }
@@ -124,11 +124,11 @@ img { max-width: 100%; }
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: grid; gap: 32px;
 }
-.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2); margin: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--accent-2); margin: 0; }
 h1, h2, h3 { text-wrap: balance; margin: 0; letter-spacing: -0.02em; }
-.page-title { font-weight: 800; font-size: clamp(30px, 5vw, 46px); line-height: 1.15; }
+.page-title { font-family: var(--font-serif); font-weight: 300; font-size: clamp(34px, 5.4vw, 56px); line-height: 1.12; letter-spacing: -0.03em; }
 .lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 16px; }
-.section-title { font-size: 21px; font-weight: 800; }
+.section-title { font-family: var(--font-serif); font-size: 22px; font-weight: 400; }
 
 .panel::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
@@ -189,7 +189,7 @@ textarea.input { min-height: 180px; resize: vertical; line-height: 1.6; }
 }
 
 @media (max-width: 640px) {
-  .site-header .inner { border-radius: 22px; padding: 8px 10px 8px 14px; }
+  .site-header .inner { padding: 8px 4px 8px 4px; }
   .nav { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; }
   .nav a { white-space: nowrap; }
 }
