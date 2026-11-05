@@ -27,7 +27,7 @@
   @media (max-width: 820px) { .wrap.wide { grid-template-columns: minmax(0, 1fr); } }
 </style>
 </head>
-<body data-page="account">
+<body data-page="account" data-layout="tri">
 <header id="site-header"></header>
 
 <main class="shell">
@@ -43,6 +43,14 @@
 <script src="assets/js/config.js"></script>
 <script src="assets/js/common.js"></script>
 <script src="assets/js/underground.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="assets/js/tunnel.js"></script>
+
 <script>
 const root = document.getElementById('root');
 const $ = id => document.getElementById(id);
