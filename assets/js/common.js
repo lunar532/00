@@ -5,7 +5,7 @@
   const client = hasKeys && window.supabase ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey) : null;
 
   const NAV = [
-    ['index.html', '밤의 정원'],
+    ['index.html', '녹턴'],
     ['viewer.html', '3D 뷰어'],
     ['map.html', '지도'],
     ['board.html', '게시판'],
@@ -60,7 +60,7 @@
     const footer = document.getElementById('site-footer');
     if (footer) {
       footer.className = 'site-footer';
-      footer.textContent = '빛마루 · 밤에 피는 정원';
+      footer.textContent = '빛마루 — Nocturne';
     }
     refreshAccountLink();
   }
