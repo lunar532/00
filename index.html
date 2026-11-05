@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>빛마루</title>
-<meta name="description" content="눌러서 빛의 꽃을 피우는 정원, 3D 집 뷰어, 지도, 게시판">
+<meta name="description" content="닿으면 피고, 끌면 끈적하게 흐르는 밤의 정원">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -13,10 +13,9 @@
   .garden-wrap { position: relative; border-radius: 28px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); min-height: 520px; height: min(72vh, 680px); }
   #garden { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
   .garden-copy { position: absolute; left: 28px; top: 26px; right: 28px; pointer-events: none; display: grid; gap: 8px; max-width: 560px; }
-  .garden-copy h1 { font-weight: 800; font-size: clamp(30px, 5.4vw, 56px); line-height: 1.08; color: var(--g-ink, #13203a); text-shadow: 0 2px 24px rgba(255, 255, 255, 0.5); }
-  .garden-copy p { margin: 0; color: var(--g-sub, #34476a); font-size: 15px; }
-  .garden-wrap[data-time="night"], .garden-wrap[data-time="dusk"] { --g-ink: #f4f6ff; --g-sub: #d2dcf5; }
-  .garden-wrap[data-time="night"] .garden-copy h1, .garden-wrap[data-time="dusk"] .garden-copy h1 { text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35); }
+  .garden-copy h1 { font-weight: 800; font-size: clamp(32px, 5.6vw, 60px); line-height: 1.05; color: #fff0f5; text-shadow: 0 0 30px rgba(255, 77, 141, 0.55), 0 2px 0 rgba(0, 0, 0, 0.25); }
+  .garden-copy p { margin: 0; color: #f3c9d8; font-size: 15px; }
+  .garden-copy .eyebrow { color: #ffb766; }
   .tools {
     position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
     padding: 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line);
@@ -38,7 +37,7 @@
     --mx: 50%; --my: 0%;
     position: relative; display: grid; gap: 10px; align-content: start; min-height: 170px; padding: 22px;
     text-decoration: none; color: var(--text); border-radius: var(--radius); overflow: hidden;
-    background: radial-gradient(240px circle at var(--mx) var(--my), color-mix(in srgb, var(--aurora-3) 45%, transparent), transparent 70%), var(--surface);
+    background: radial-gradient(260px circle at var(--mx) var(--my), color-mix(in srgb, var(--accent) 28%, transparent), transparent 70%), var(--surface);
     border: 1px solid var(--line); box-shadow: var(--shadow);
     transition: transform .25s, border-color .25s;
   }
@@ -75,9 +74,9 @@
   <section class="garden-wrap" id="garden-wrap" data-time="day" aria-label="빛의 정원">
     <canvas id="garden" aria-label="화면을 누르면 그 자리에 빛나는 꽃이 피어나요"></canvas>
     <div class="garden-copy">
-      <p class="eyebrow">빛마루 · 지하 정원 도시</p>
-      <h1 id="site-name">눌러서 빛을 심어요</h1>
-      <p id="garden-hint">아무 곳이나 누르면 꽃이 자라요. 끌면 바람이 불어요.</p>
+      <p class="eyebrow">빛마루 · 밤에 피는 정원</p>
+      <h1 id="site-name">닿으면 피어나요</h1>
+      <p id="garden-hint">누르면 꽃이 피고, 천천히 끌면 꿀처럼 끈적한 빛이 흘러내려요.</p>
     </div>
     <div class="toast" id="toast" hidden></div>
     <div class="tools" role="toolbar" aria-label="정원 도구">
@@ -86,11 +85,11 @@
         <button type="button" data-kind="1" aria-pressed="false">이슬꽃</button>
         <button type="button" data-kind="2" aria-pressed="false">나선꽃</button>
       </div>
-      <div class="seg" role="group" aria-label="시간" id="time-seg">
-        <button type="button" data-time="dawn" aria-pressed="false">새벽</button>
-        <button type="button" data-time="day" aria-pressed="true">낮</button>
-        <button type="button" data-time="dusk" aria-pressed="false">노을</button>
-        <button type="button" data-time="night" aria-pressed="false">밤</button>
+      <div class="seg" role="group" aria-label="분위기" id="time-seg">
+        <button type="button" data-time="dawn" aria-pressed="false">장밋빛</button>
+        <button type="button" data-time="day" aria-pressed="true">벨벳</button>
+        <button type="button" data-time="dusk" aria-pressed="false">와인</button>
+        <button type="button" data-time="night" aria-pressed="false">자정</button>
       </div>
       <button class="btn small" type="button" id="sound-btn" aria-pressed="false">소리 켜기</button>
       <button class="btn small" type="button" id="wind-btn">바람</button>
@@ -142,14 +141,14 @@
 <script>
 // 오늘의 문장 (빛마루의 약속)
 const PROMISES = [
-  '누구도 혼자 어둠을 지나지 않는다.',
-  '빛은 나눌수록 줄지 않는다.',
-  '오늘 심은 씨앗은 내일의 누군가를 위한 것.',
-  '서두르지 않아도 꽃은 핀다.',
-  '우리가 켠 불빛이 이 도시의 하늘이 된다.',
-  '물과 빛과 쉼은 모두의 것.',
-  '다르게 자라는 꽃이 정원을 완성한다.',
-  '천천히 걷는 사람도 함께 도착한다.',
+  '서두르지 마. 밤은 길어.',
+  '가장 진한 향은 늦게 피는 꽃에서 난다.',
+  '빛은 천천히, 아주 천천히 번진다.',
+  '닿는 순간 피어나는 것들이 있다.',
+  '달콤한 건 언제나 조금씩 흘러내린다.',
+  '이 정원에선 아무도 시간을 재지 않는다.',
+  '온기는 가까이 있을 때 가장 선명하다.',
+  '오늘 밤의 빛은 오늘 밤에만 핀다.',
 ];
 let pi = Math.floor(Math.random() * PROMISES.length);
 const pEl = document.getElementById('promise');
