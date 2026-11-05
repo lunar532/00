@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>광장 벽 게시판 · Underlume</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<style>
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li a { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 14px 4px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--text); }
+  .list li a:hover .t { color: var(--uv-cyan); }
+  .list .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .list .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list .m { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .pager { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+  .post-head { display: grid; gap: 6px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .post-head h2 { font-family: var(--font-ko-display); font-size: 26px; }
+  .post-head .m { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .post-body { white-space: pre-wrap; overflow-wrap: anywhere; padding: 18px 0; line-height: 1.8; }
+  .comments { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .comment { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; }
+  .comment .m { font-family: var(--font-mono); font-size: 11px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+  .comment p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  @media (max-width: 560px) {
+    .list li a { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .list .n { display: none; }
+  }
+</style>
+</head>
+<body data-page="board">
+<header id="site-header"></header>
+
+<main class="shell">
+  <div>
+    <p class="eyebrow">Sector B · 광장 벽</p>
+    <h1 class="page-title">게시판</h1>
+    <p class="lede">가입하지 않아도 누구나 글과 댓글을 남길 수 있어요. 비회원 글은 관리자만 지울 수 있으니 신중하게 써 주세요.</p>
+  </div>
+
+  <section class="panel" id="view"><p class="hint">불러오는 중…</p></section>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
+<script>
+const PAGE_SIZE = 20;
+const view = document.getElementById('view');
+const params = new URLSearchParams(location.search);
+let me = null, settings = null;
+
+function nameField(id) {
+  const v = me ? UL.esc(me.nickname) : '';
+  return `<div class="field"><label for="${id}">이름</label><input class="input" id="${id}" maxlength="30" required value="${v}" ${me ? 'readonly' : ''} placeholder="거주자 이름"></div>`;
+}
+
+async function showList() {
+  const page = Math.max(1, parseInt(params.get('page') || '1', 10));
+  const from = (page - 1) * PAGE_SIZE;
+  const { data, count, error } = await UL.client.from('posts')
+    .select('id, title, author_name, created_at', { count: 'exact' })
+    .order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1);
+  if (error) { view.innerHTML = `<p class="msg error">글 목록을 불러오지 못했어요: ${UL.esc(error.message)}</p>`; return; }
+  const canWrite = settings ? settings.board_open : true;
+  const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+  view.innerHTML = `
+    <div class="row" style="margin-bottom:8px">
+      <h2 class="section-title">전체 글 <span class="tag">${count || 0}</span></h2>
+      <span class="spacer"></span>
+      ${canWrite ? '<a class="btn primary" href="board.html?write=1">글쓰기</a>' : '<span class="tag">관리자가 글쓰기를 잠갔어요</span>'}
+    </div>
+    ${data.length ? `<ul class="list">${data.map((p, i) => `
+      <li><a href="board.html?id=${p.id}">
+        <span class="n">${(count || 0) - from - i}</span>
+        <span class="t">${UL.esc(p.title)}</span>
+        <span class="m">${UL.esc(p.author_name)} · ${UL.fmtDate(p.created_at)}</span>
+      </a></li>`).join('')}</ul>` : '<p class="hint">아직 글이 없어요. 첫 글을 남겨 보세요.</p>'}
+    ${pages > 1 ? `<nav class="pager" aria-label="페이지">
+      ${page > 1 ? `<a class="btn small ghost" href="board.html?page=${page - 1}">이전</a>` : ''}
+      <span class="tag">${page} / ${pages}</span>
+      ${page < pages ? `<a class="btn small ghost" href="board.html?page=${page + 1}">다음</a>` : ''}
+    </nav>` : ''}`;
+}
+
+function showWrite() {
+  if (settings && !settings.board_open) { view.innerHTML = '<p class="msg error">지금은 관리자가 글쓰기를 잠가 두었어요.</p><p><a href="board.html">목록으로</a></p>'; return; }
+  view.innerHTML = `
+    <form class="form" id="write-form">
+      <h2 class="section-title">새 글</h2>
+      ${nameField('w-name')}
+      <div class="field"><label for="w-title">제목</label><input class="input" id="w-title" maxlength="120" required></div>
+      <div class="field"><label for="w-body">내용</label><textarea class="input" id="w-body" maxlength="10000" required></textarea></div>
+      <p class="msg" id="w-msg"></p>
+      <div class="row"><a class="btn ghost" href="board.html">취소</a><span class="spacer"></span><button class="btn primary" type="submit" id="w-submit">올리기</button></div>
+    </form>`;
+  document.getElementById('write-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('w-submit'), msg = document.getElementById('w-msg');
+    const row = {
+      author_name: document.getElementById('w-name').value.trim(),
+      title: document.getElementById('w-title').value.trim(),
+      body: document.getElementById('w-body').value.trim(),
+      user_id: me ? me.id : null,
+    };
+    if (!row.author_name || !row.title || !row.body) { msg.className = 'msg error'; msg.textContent = '이름, 제목, 내용을 모두 채워 주세요.'; return; }
+    btn.disabled = true;
+    const { data, error } = await UL.client.from('posts').insert(row).select('id').single();
+    if (error) { btn.disabled = false; msg.className = 'msg error'; msg.textContent = '올리지 못했어요: ' + error.message; return; }
+    location.href = 'board.html?id=' + data.id;
+  });
+}
+
+async function showPost(id) {
+  const { data: p, error } = await UL.client.from('posts').select('*').eq('id', id).maybeSingle();
+  if (error || !p) { view.innerHTML = '<p class="msg error">글을 찾을 수 없어요. 지워졌을 수 있어요.</p><p><a href="board.html">목록으로</a></p>'; return; }
+  document.title = p.title + ' · Underlume';
+  const canDelete = me && (me.role === 'admin' || me.id === p.user_id);
+  view.innerHTML = `
+    <article>
+      <div class="post-head">
+        <h2>${UL.esc(p.title)}</h2>
+        <div class="m">${UL.esc(p.author_name)} ${p.user_id ? '' : '<span class="tag">비회원</span>'} · ${UL.fmtDate(p.created_at)}</div>
+      </div>
+      <div class="post-body">${UL.esc(p.body)}</div>
+      <div class="row" style="margin-bottom:18px">
+        <a class="btn ghost small" href="board.html">목록으로</a><span class="spacer"></span>
+        ${canDelete ? '<button class="btn danger small" id="del-post" type="button">글 지우기</button>' : ''}
+      </div>
+    </article>
+    <section class="comments">
+      <h3 class="section-title" style="font-size:18px">댓글</h3>
+      <div id="c-list"><p class="hint">불러오는 중…</p></div>
+      ${(!settings || settings.board_open) ? `
+      <form class="form" id="c-form">
+        ${nameField('c-name')}
+        <div class="field"><label for="c-body">댓글</label><textarea class="input" id="c-body" maxlength="2000" required style="min-height:90px"></textarea></div>
+        <p class="msg" id="c-msg"></p>
+        <div class="row"><span class="spacer"></span><button class="btn primary small" type="submit" id="c-submit">댓글 달기</button></div>
+      </form>` : '<p class="hint">지금은 댓글 쓰기가 잠겨 있어요.</p>'}
+    </section>`;
+
+  const del = document.getElementById('del-post');
+  if (del) {
+    let armed = false;
+    del.addEventListener('click', async () => {
+      if (!armed) { armed = true; del.textContent = '한 번 더 누르면 지워져요'; setTimeout(() => { armed = false; del.textContent = '글 지우기'; }, 4000); return; }
+      const { error } = await UL.client.from('posts').delete().eq('id', p.id);
+      if (error) { del.textContent = '지우지 못했어요'; return; }
+      location.href = 'board.html';
+    });
+  }
+  const form = document.getElementById('c-form');
+  if (form) form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = document.getElementById('c-msg'), btn = document.getElementById('c-submit');
+    const row = { post_id: p.id, author_name: document.getElementById('c-name').value.trim(), body: document.getElementById('c-body').value.trim(), user_id: me ? me.id : null };
+    if (!row.author_name || !row.body) { msg.className = 'msg error'; msg.textContent = '이름과 댓글을 채워 주세요.'; return; }
+    btn.disabled = true;
+    const { error } = await UL.client.from('comments').insert(row);
+    btn.disabled = false;
+    if (error) { msg.className = 'msg error'; msg.textContent = '댓글을 달지 못했어요: ' + error.message; return; }
+    document.getElementById('c-body').value = '';
+    msg.className = 'msg ok'; msg.textContent = '댓글을 달았어요.';
+    loadComments(p.id);
+  });
+  loadComments(p.id);
+}
+
+async function loadComments(postId) {
+  const box = document.getElementById('c-list');
+  const { data, error } = await UL.client.from('comments').select('*').eq('post_id', postId).order('created_at');
+  if (error) { box.innerHTML = `<p class="msg error">댓글을 불러오지 못했어요: ${UL.esc(error.message)}</p>`; return; }
+  if (!data.length) { box.innerHTML = '<p class="hint">아직 댓글이 없어요.</p>'; return; }
+  box.innerHTML = data.map(c => `
+    <div class="comment">
+      <div class="m"><span>${UL.esc(c.author_name)}</span>${c.user_id ? '' : '<span class="tag">비회원</span>'}<span>${UL.fmtDate(c.created_at)}</span>
+        ${me && (me.role === 'admin' || me.id === c.user_id) ? `<span class="spacer"></span><button class="btn danger small" type="button" data-del="${c.id}">지우기</button>` : ''}
+      </div>
+      <p>${UL.esc(c.body)}</p>
+    </div>`).join('');
+  box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+    const { error } = await UL.client.from('comments').delete().eq('id', b.dataset.del);
+    if (!error) loadComments(postId); else b.textContent = '실패';
+  }));
+}
+
+(async () => {
+  if (!UL.configured) { view.innerHTML = UL.setupNotice(); return; }
+  [me, settings] = await Promise.all([UL.getProfile(), UL.getSettings()]);
+  if (params.get('id')) showPost(params.get('id'));
+  else if (params.get('write')) showWrite();
+  else showList();
+})();
+</script>
+</body>
+</html>

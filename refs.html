@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기록 보관소 · Underlume</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .ref { display: grid; gap: 10px; align-content: start; }
+  .ref .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ref .idx { font-family: var(--font-mono); font-size: 11px; color: var(--uv-pink); letter-spacing: .1em; }
+  .ref h3 { font-family: var(--font-mono); font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+  .ref h3 a { color: var(--text); text-decoration: none; }
+  .ref h3 a:hover { color: var(--uv-cyan); }
+  .ref h3 .owner { color: var(--muted); }
+  .ref p { margin: 0; color: var(--muted); font-size: 14px; }
+  .ref .stars { font-family: var(--font-mono); font-size: 11px; color: var(--uv-cyan); }
+  .clone { display: flex; gap: 6px; align-items: center; min-width: 0; }
+  .clone code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font-family: var(--font-mono); font-size: 12px; padding: 6px 10px; border-radius: 8px; background: rgba(2, 5, 26, 0.7); border: 1px solid var(--line); color: var(--uv-cyan); }
+  @media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body data-page="refs">
+<header id="site-header"></header>
+
+<main class="shell">
+  <div class="row" style="align-items:flex-end">
+    <div style="display:grid;gap:8px;min-width:0;flex:1 1 320px">
+      <p class="eyebrow">Sector C · 기록 보관소</p>
+      <h1 class="page-title">참고자료</h1>
+      <p class="lede">무너진 지상에서 건져 올린 코드들. 들를 때마다 <span id="total"></span>개 중 10개를 무작위로 꺼내 보여줘요.</p>
+    </div>
+    <button class="btn" type="button" id="reroll">다른 10개 뽑기</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/refs-data.js"></script>
+<script>
+const grid = document.getElementById('grid');
+document.getElementById('total').textContent = UL_REFS.length;
+
+function pickRandom(list, n) {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.slice(0, n);
+}
+
+function fmtStars(n) { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n); }
+
+// GitHub 별 개수는 되는 만큼만 보여줘요 (비로그인 API는 시간당 60회 제한이 있어서 저장해 둬요).
+async function loadStars(repo, el) {
+  const key = 'stars:' + repo;
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(key) || 'null');
+    if (cached) { el.textContent = '★ ' + fmtStars(cached); return; }
+  } catch (e) {}
+  try {
+    const res = await fetch('https://api.github.com/repos/' + repo);
+    if (!res.ok) return;
+    const j = await res.json();
+    el.textContent = '★ ' + fmtStars(j.stargazers_count);
+    try { sessionStorage.setItem(key, JSON.stringify(j.stargazers_count)); } catch (e) {}
+  } catch (e) {}
+}
+
+function render() {
+  const picks = pickRandom(UL_REFS, 10);
+  grid.innerHTML = '';
+  picks.forEach((r, i) => {
+    const [owner, name] = r.repo.split('/');
+    const card = document.createElement('article');
+    card.className = 'panel ref';
+    card.innerHTML = `
+      <div class="top"><span class="idx">#${String(i + 1).padStart(2, '0')}</span><span class="tag">${UL.esc(r.cat)}</span><span class="spacer"></span><span class="stars"></span></div>
+      <h3><a href="https://github.com/${UL.esc(r.repo)}" target="_blank" rel="noopener"><span class="owner">${UL.esc(owner)}/</span>${UL.esc(name)}</a></h3>
+      <p>${UL.esc(r.desc)}</p>
+      <div class="clone"><code>git clone https://github.com/${UL.esc(r.repo)}.git</code><button class="btn small ghost" type="button">복사</button></div>`;
+    const btn = card.querySelector('button');
+    btn.addEventListener('click', async () => {
+      const text = card.querySelector('code').textContent;
+      try { await navigator.clipboard.writeText(text); btn.textContent = '복사됨'; }
+      catch (e) {
+        const range = document.createRange(); range.selectNodeContents(card.querySelector('code'));
+        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        btn.textContent = '선택됨';
+      }
+      setTimeout(() => { btn.textContent = '복사'; }, 1800);
+    });
+    grid.appendChild(card);
+    loadStars(r.repo, card.querySelector('.stars'));
+  });
+}
+document.getElementById('reroll').addEventListener('click', render);
+render();
+</script>
+</body>
+</html>

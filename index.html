@@ -2,296 +2,139 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>소설 리더</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Underlume</title>
+<meta name="description" content="핵전쟁 이후 지하 340m, 사파이어 빛으로 꾸린 거주구역. 3D 집 뷰어, 게시판, 참고자료.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
-    --border: #2e2e2e; --text: #e8e8e8; --text-muted: #777;
-    --accent: #c8a96e; --radius: 10px;
-    --font: 'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  .hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: 420px; }
+  .hero h1 {
+    font-family: var(--font-display); font-style: italic; font-weight: 500;
+    font-size: clamp(56px, 11vw, 120px); line-height: 0.95; letter-spacing: -0.01em;
+    background: linear-gradient(105deg, #e7ecff 10%, var(--uv-cyan) 40%, var(--uv) 65%, var(--uv-pink));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 28px rgba(139, 77, 255, 0.45));
   }
-  body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; -webkit-tap-highlight-color:transparent; }
+  .hero .ko { font-family: var(--font-ko-display); font-size: clamp(20px, 3vw, 26px); margin: 14px 0 12px; }
+  .hero .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .figure { position: relative; aspect-ratio: 3 / 4; max-width: 100%; justify-self: center; width: min(360px, 100%); }
+  .figure svg { width: 100%; height: 100%; overflow: visible; }
+  .figure .c { fill: none; stroke-linecap: round; filter: url(#heroglow); }
+  .figure .scan { animation: scan 6s ease-in-out infinite; }
+  @keyframes scan { 0%, 100% { transform: translateY(0); opacity: .25; } 50% { transform: translateY(320px); opacity: .9; } }
+  @media (prefers-reduced-motion: reduce) { .figure .scan { animation: none; } }
 
-  /* 설정 */
-  #screen-setup { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:2rem 1.25rem; }
-  .logo { font-size:12px; letter-spacing:.15em; color:var(--accent); text-transform:uppercase; margin-bottom:.5rem; }
-  .setup-title { font-size:24px; font-weight:700; margin-bottom:2rem; }
-  .setup-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.75rem; width:100%; max-width:400px; }
-  .field-label { font-size:12px; color:var(--text-muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; display:block; }
-  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.25rem; }
-  input[type=number] { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:16px; font-family:var(--font); padding:10px 14px; outline:none; transition:border-color .15s; -moz-appearance:textfield; }
-  input[type=number]::-webkit-inner-spin-button { display:none; }
-  input[type=number]:focus { border-color:var(--accent); }
-  .hint { font-size:12px; color:var(--text-muted); margin-bottom:1.5rem; line-height:1.6; background:var(--surface2); border-radius:var(--radius); padding:10px 14px; }
-  .btn-primary { width:100%; background:var(--accent); color:#0f0f0f; border:none; border-radius:var(--radius); font-size:15px; font-weight:700; font-family:var(--font); padding:13px; cursor:pointer; }
-  .btn-primary:active { opacity:.8; }
-  #err-msg { color:#e05555; font-size:13px; margin-top:10px; display:none; text-align:center; }
+  .notice { display: flex; gap: 12px; align-items: baseline; }
+  .notice .eyebrow { flex: none; }
+  .notice p { margin: 0; white-space: pre-wrap; }
 
-  /* 목록 */
-  #screen-list { display:none; }
-  .top-bar { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--bg); z-index:10; }
-  .btn-icon { background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:16px; width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .btn-icon:active { background:var(--surface2); }
-  .top-bar-title { font-size:15px; font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .chapter-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:8px; padding:16px; }
-  .ch-btn { background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:var(--font); padding:10px 4px; cursor:pointer; text-align:center; }
-  .ch-btn.read { border-color:#8a7048; color:var(--accent); }
+  .doors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .door {
+    position: relative; text-decoration: none; color: var(--text);
+    display: grid; gap: 8px; align-content: start; min-height: 170px;
+    padding: 20px; border-radius: var(--radius);
+    background: linear-gradient(160deg, rgba(15, 82, 186, 0.28), rgba(9, 20, 62, 0.65) 60%);
+    border: 1px solid var(--line); overflow: hidden;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .door::after {
+    content: ""; position: absolute; right: -40px; bottom: -60px; width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 79, 216, 0.35), transparent 70%);
+    opacity: 0; transition: opacity .25s;
+  }
+  .door:hover { border-color: var(--line-hi); box-shadow: 0 0 30px -6px rgba(139, 77, 255, 0.6); transform: translateY(-2px); color: var(--text); }
+  .door:hover::after { opacity: 1; }
+  .door .code { font-family: var(--font-mono); font-size: 11px; color: var(--uv-cyan); letter-spacing: .12em; }
+  .door h3 { font-family: var(--font-ko-display); font-size: 20px; }
+  .door p { margin: 0; color: var(--muted); font-size: 13px; }
 
-  /* 리더 */
-  #screen-reader { display:none; }
-  #reader-content { padding:0 0 110px; text-align:center; }
-  #reader-content img { display:block; width:100%; max-width:720px; margin:0 auto; vertical-align:top; }
-  .reader-loading { padding:80px 20px; text-align:center; color:var(--text-muted); font-size:14px; }
-  .spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .error-box { padding:60px 20px; text-align:center; color:var(--text-muted); }
-  .error-box .icon { font-size:36px; margin-bottom:12px; }
-  .error-box p { font-size:14px; line-height:1.7; }
-  .error-box button { margin-top:16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:14px; font-family:var(--font); padding:9px 20px; cursor:pointer; }
+  .latest { display: grid; gap: 14px; }
+  .latest ul { list-style: none; margin: 0; padding: 0; display: grid; }
+  .latest li a { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--text); min-width: 0; }
+  .latest li a:hover .t { color: var(--uv-cyan); }
+  .latest .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .latest .m { color: var(--muted); font-size: 12px; font-family: var(--font-mono); white-space: nowrap; }
 
-  /* 하단 네비 */
-  .nav-bar { position:fixed; bottom:0; left:0; right:0; display:flex; gap:8px; padding:10px 12px; padding-bottom:calc(10px + env(safe-area-inset-bottom)); background:rgba(15,15,15,.95); backdrop-filter:blur(12px); border-top:1px solid var(--border); z-index:20; }
-  .btn-nav { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:14px; font-weight:600; font-family:var(--font); padding:11px 8px; cursor:pointer; }
-  .btn-nav:active { background:var(--surface2); }
-  .btn-nav.accent { background:var(--accent); border-color:var(--accent); color:#0f0f0f; }
-  .btn-nav:disabled { opacity:.3; cursor:default; }
-  .chapter-info { flex:0 0 auto; text-align:center; font-size:12px; color:var(--text-muted); align-self:center; line-height:1.4; min-width:48px; }
-  .chapter-info strong { display:block; font-size:13px; color:var(--text); font-weight:600; }
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+    .figure { width: min(240px, 70%); grid-row: 1; }
+    .doors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 460px) { .doors { grid-template-columns: minmax(0, 1fr); } }
 </style>
 </head>
-<body>
+<body data-page="index">
+<header id="site-header"></header>
 
-<div id="screen-setup">
-  <div class="logo">Novel Reader</div>
-  <div class="setup-title">소설 불러오기</div>
-  <div class="setup-card">
-    <div class="field-row">
-      <div>
-        <label class="field-label" for="inp-start">시작 ID</label>
-        <input type="number" id="inp-start" placeholder="679900" value="679900">
-      </div>
-      <div>
-        <label class="field-label" for="inp-end">끝 ID</label>
-        <input type="number" id="inp-end" placeholder="679960" value="679960">
+<main class="shell">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">지하 거주구역 7 · 심도 340 m</p>
+      <h1 id="site-name">Underlume</h1>
+      <p class="ko">잿빛 지상 아래, 우리가 켠 빛의 낙원.</p>
+      <p class="lede">지상이 멈춘 지 212년. 이곳 사람들은 사파이어 등불과 자외선 램프 아래에서 집을 짓고, 서로의 소식을 벽에 남겨요. 스캔한 내 방을 3D로 걸어 보고, 게시판에 흔적을 남기고, 쓸 만한 코드를 주워 가세요.</p>
+      <div class="actions">
+        <a class="btn primary" href="viewer.html">내 집 3D로 보기</a>
+        <a class="btn" href="board.html">게시판 가기</a>
       </div>
     </div>
-    <div class="hint">
-      온도북 URL의 <code style="color:var(--accent)">wr_id=</code> 숫자를 입력하세요.<br>
-      예) .../board.php?bo_table=novel&amp;<b style="color:var(--accent)">wr_id=679908</b>
+    <div class="figure" aria-hidden="true">
+      <svg viewBox="0 0 300 400">
+        <defs>
+          <linearGradient id="hg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63f0ff"/><stop offset=".55" stop-color="#8b4dff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient>
+          <linearGradient id="hg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff4fd8" stop-opacity="0"/><stop offset=".5" stop-color="#ff4fd8"/><stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/></linearGradient>
+          <filter id="heroglow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- 허리와 골반의 곡선을 닮은 두 줄기 빛 -->
+        <path class="c" stroke="url(#hg1)" stroke-width="2.4" d="M 110 0 C 92 60, 88 110, 104 150 C 120 190, 128 205, 96 250 C 66 292, 64 340, 92 400"/>
+        <path class="c" stroke="url(#hg1)" stroke-width="2.4" d="M 190 0 C 208 60, 212 110, 196 150 C 180 190, 172 205, 204 250 C 234 292, 236 340, 208 400"/>
+        <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 128 0 C 114 70, 112 115, 124 150 C 136 185, 142 210, 118 250 C 96 290, 96 340, 116 400"/>
+        <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 172 0 C 186 70, 188 115, 176 150 C 164 185, 158 210, 182 250 C 204 290, 204 340, 184 400"/>
+        <line class="scan" x1="40" y1="30" x2="260" y2="30" stroke="url(#hg2)" stroke-width="1.5"/>
+      </svg>
     </div>
-    <button class="btn-primary" onclick="startReader()">읽기 시작</button>
-    <div id="err-msg"></div>
-  </div>
-</div>
+  </section>
 
-<div id="screen-list">
-  <div class="top-bar">
-    <button class="btn-icon" onclick="showSetup()">⚙️</button>
-    <div class="top-bar-title" id="list-title">화 목록</div>
-  </div>
-  <div class="chapter-grid" id="chapter-grid"></div>
-</div>
+  <section class="panel notice" id="notice" hidden>
+    <p class="eyebrow">방송</p>
+    <p id="notice-text"></p>
+  </section>
 
-<div id="screen-reader">
-  <div class="top-bar">
-    <button class="btn-icon" onclick="showList()">☰</button>
-    <div class="top-bar-title" id="reader-title">불러오는 중...</div>
-    <button class="btn-icon" onclick="showSetup()">⚙️</button>
-  </div>
-  <div id="reader-content">
-    <div class="reader-loading"><div class="spinner"></div><div>불러오는 중...</div></div>
-  </div>
-  <div class="nav-bar">
-    <button class="btn-icon" onclick="showList()">☰</button>
-    <button class="btn-nav" id="btn-prev" onclick="goPrev()">◀ 이전</button>
-    <div class="chapter-info"><strong id="nav-ch">-</strong><span id="nav-sub">화</span></div>
-    <button class="btn-nav accent" id="btn-next" onclick="goNext()">다음 ▶</button>
-  </div>
-</div>
+  <section class="doors" aria-label="구역 안내">
+    <a class="door" href="viewer.html"><span class="code">SECTOR A · 주거 설계실</span><h3>3D 집 뷰어</h3><p>폰으로 스캔한 집 파일을 올려 둘러보고, 재고, 벽에 사진을 걸어요.</p></a>
+    <a class="door" href="board.html"><span class="code">SECTOR B · 광장 벽</span><h3>게시판</h3><p>가입 없이 누구나 글을 남길 수 있어요.</p></a>
+    <a class="door" href="refs.html"><span class="code">SECTOR C · 기록 보관소</span><h3>참고자료</h3><p>올 때마다 다른 GitHub 추천 코드 10개.</p></a>
+    <a class="door" href="account.html"><span class="code">SECTOR D · 출입 관리</span><h3>계정</h3><p>가입과 로그인. 첫 가입자가 관리자가 돼요.</p></a>
+  </section>
 
+  <section class="panel latest">
+    <div class="row"><h2 class="section-title">광장 벽의 새 글</h2><span class="spacer"></span><a href="board.html">전체 보기</a></div>
+    <div id="latest"><p class="hint">불러오는 중…</p></div>
+  </section>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
 <script>
-// newtoki 미러 목록 (숫자 높을수록 최신)
-const MIRRORS = ['newtoki469','newtoki468','newtoki467','newtoki466','newtoki465'];
-
-// 이미지 URL의 구 도메인을 최신 미러로 교체
-function fixImgUrl(url, mirrorIdx) {
-  mirrorIdx = mirrorIdx || 0;
-  // newtoki숫자.org|com|net 패턴 교체
-  if (/newtoki\d+\.(org|com|net)/i.test(url)) {
-    const path = url.replace(/https?:\/\/[^/]+/, '');
-    return 'https://' + MIRRORS[mirrorIdx] + '.net' + path;
+(async () => {
+  const box = document.getElementById('latest');
+  if (!UL.configured) { box.innerHTML = UL.setupNotice(); return; }
+  const s = await UL.getSettings();
+  if (s) {
+    if (s.site_name) { document.getElementById('site-name').textContent = s.site_name; document.title = s.site_name; }
+    if (s.notice) { document.getElementById('notice-text').textContent = s.notice; document.getElementById('notice').hidden = false; }
   }
-  return url;
-}
-
-// HTML에서 이미지 URL 파싱 (정규식 — DOM 파싱 불필요)
-function parseImages(html) {
-  const found = [];
-  // <img ... src="URL" 패턴
-  const re = /src="(https?:\/\/[^"]+\/data\/file\/novel\/[^"]+\.(?:jpg|jpeg|png|webp))"/gi;
-  let m;
-  while ((m = re.exec(html)) !== null) {
-    found.push(m[1]);
-  }
-  // 타임스탬프 숫자 기준 정렬
-  found.sort((a, b) => {
-    const na = parseInt((a.match(/(\d{10,})/) || [0,0])[1]);
-    const nb = parseInt((b.match(/(\d{10,})/) || [0,0])[1]);
-    return na - nb;
-  });
-  return [...new Set(found)];
-}
-
-// 제목 파싱
-function parseTitle(html) {
-  const m = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)
-    || html.match(/<title>([^<]+)<\/title>/i);
-  return m ? m[1].trim() : '';
-}
-
-let chapters = [], readSet = new Set(), currentIdx = 0, storeKey = '';
-
-function showSetup() {
-  document.getElementById('screen-setup').style.display = 'flex';
-  document.getElementById('screen-list').style.display = 'none';
-  document.getElementById('screen-reader').style.display = 'none';
-}
-function showList() {
-  document.getElementById('screen-setup').style.display = 'none';
-  document.getElementById('screen-list').style.display = 'block';
-  document.getElementById('screen-reader').style.display = 'none';
-  window.scrollTo(0,0);
-}
-function showReader() {
-  document.getElementById('screen-setup').style.display = 'none';
-  document.getElementById('screen-list').style.display = 'none';
-  document.getElementById('screen-reader').style.display = 'block';
-  window.scrollTo(0,0);
-}
-
-function startReader() {
-  const s = parseInt(document.getElementById('inp-start').value);
-  const e = parseInt(document.getElementById('inp-end').value);
-  const err = document.getElementById('err-msg');
-  if (!s || !e || s > e) { err.style.display='block'; err.textContent='ID를 올바르게 입력하세요.'; return; }
-  if (e - s > 500) { err.style.display='block'; err.textContent='한 번에 최대 500화까지 가능해요.'; return; }
-  err.style.display = 'none';
-  chapters = [];
-  for (let id = s; id <= e; id++) chapters.push({ wr_id: id, index: id - s + 1 });
-  storeKey = 'read_' + s + '_' + e;
-  try { readSet = new Set(JSON.parse(localStorage.getItem(storeKey) || '[]')); } catch(e) { readSet = new Set(); }
-  document.getElementById('list-title').textContent = `총 ${chapters.length}화`;
-  buildGrid();
-  showList();
-}
-
-function buildGrid() {
-  const grid = document.getElementById('chapter-grid');
-  grid.innerHTML = '';
-  chapters.forEach((ch, i) => {
-    const b = document.createElement('button');
-    b.className = 'ch-btn' + (readSet.has(ch.wr_id) ? ' read' : '');
-    b.textContent = ch.index + '화';
-    b.id = 'ch' + ch.wr_id;
-    b.onclick = () => openChapter(i);
-    grid.appendChild(b);
-  });
-}
-
-async function openChapter(idx) {
-  currentIdx = idx;
-  showReader();
-  await loadChapter(idx);
-}
-
-// CORS 우회: 여러 프록시 순서대로 시도
-const PROXIES = [
-  u => 'https://corsproxy.io/?' + encodeURIComponent(u),
-  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
-  u => 'https://thingproxy.freeboard.io/fetch/' + u,
-];
-
-async function fetchWithProxy(url) {
-  for (let i = 0; i < PROXIES.length; i++) {
-    try {
-      const res = await fetch(PROXIES[i](url), { signal: AbortSignal.timeout(10000) });
-      if (res.ok) {
-        const text = await res.text();
-        if (text.length > 500) return text; // 유효한 응답
-      }
-    } catch(e) { /* 다음 프록시 시도 */ }
-  }
-  throw new Error('모든 프록시 실패');
-}
-
-async function loadChapter(idx) {
-  const ch = chapters[idx];
-  const content = document.getElementById('reader-content');
-  const titleEl = document.getElementById('reader-title');
-
-  document.getElementById('nav-ch').textContent = ch.index + '화';
-  document.getElementById('nav-sub').textContent = '';
-  document.getElementById('btn-prev').disabled = idx === 0;
-  document.getElementById('btn-next').disabled = idx === chapters.length - 1;
-  titleEl.textContent = ch.index + '화 로딩 중...';
-  content.innerHTML = '<div class="reader-loading"><div class="spinner"></div><div>불러오는 중...</div></div>';
-
-  const pageUrl = 'https://21.ondobook.net/bbs/board.php?bo_table=novel&wr_id=' + ch.wr_id;
-
-  try {
-    const html = await fetchWithProxy(pageUrl);
-    const title = parseTitle(html);
-    const imgs = parseImages(html);
-
-    if (title) { titleEl.textContent = title; document.getElementById('nav-ch').textContent = ch.index + '화'; }
-
-    if (!imgs.length) {
-      content.innerHTML = `<div class="error-box"><div class="icon">📭</div><p>이미지를 찾지 못했어요.<br>빈 화이거나 다른 소설 ID일 수 있어요.</p><button onclick="loadChapter(${idx})">다시 시도</button></div>`;
-      return;
-    }
-
-    content.innerHTML = '';
-    imgs.forEach((src, i) => {
-      const img = document.createElement('img');
-      img.alt = '';
-      img.loading = i < 4 ? 'eager' : 'lazy';
-      img.dataset.src = src;
-      img.dataset.mirror = '0';
-
-      img.onerror = function() {
-        const m = parseInt(this.dataset.mirror) + 1;
-        if (m < MIRRORS.length) {
-          this.dataset.mirror = m;
-          this.src = fixImgUrl(this.dataset.src, m);
-        }
-        // 실패해도 조용히 넘어감
-      };
-
-      img.src = fixImgUrl(src, 0);
-      content.appendChild(img);
-    });
-
-    // 읽음 표시
-    readSet.add(ch.wr_id);
-    try { localStorage.setItem(storeKey, JSON.stringify([...readSet])); } catch(e){}
-    const btn = document.getElementById('ch' + ch.wr_id);
-    if (btn) btn.className = 'ch-btn read';
-
-  } catch(e) {
-    content.innerHTML = `<div class="error-box"><div class="icon">⚠️</div><p>불러오기 실패<br><small style="font-size:11px;color:#555">${e.message}</small><br><br>인터넷 연결이나 프록시 서버 상태를 확인해보세요.</p><button onclick="loadChapter(${idx})">다시 시도</button></div>`;
-  }
-}
-
-function goPrev() { if (currentIdx > 0) { currentIdx--; loadChapter(currentIdx); window.scrollTo(0,0); } }
-function goNext() { if (currentIdx < chapters.length-1) { currentIdx++; loadChapter(currentIdx); window.scrollTo(0,0); } }
-
-document.addEventListener('keydown', e => {
-  if (document.getElementById('screen-reader').style.display === 'none') return;
-  if (e.key === 'ArrowRight') goNext();
-  if (e.key === 'ArrowLeft') goPrev();
-});
+  const { data, error } = await UL.client.from('posts').select('id, title, author_name, created_at').order('created_at', { ascending: false }).limit(5);
+  if (error) { box.innerHTML = `<p class="msg error">글을 불러오지 못했어요: ${UL.esc(error.message)}</p>`; return; }
+  if (!data.length) { box.innerHTML = '<p class="hint">아직 아무도 글을 남기지 않았어요. 첫 글을 써 보세요.</p>'; return; }
+  box.innerHTML = '<ul>' + data.map(p => `<li><a href="board.html?id=${p.id}"><span class="t">${UL.esc(p.title)}</span><span class="m">${UL.esc(p.author_name)} · ${UL.fmtDate(p.created_at)}</span></a></li>`).join('') + '</ul>';
+})();
 </script>
 </body>
 </html>
