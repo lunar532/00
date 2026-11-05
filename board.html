@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>광장 벽 게시판 · Underlume</title>
+<title>게시판 · Underlume</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
   .list { list-style: none; margin: 0; padding: 0; }
@@ -35,9 +35,8 @@
 
 <main class="shell">
   <div>
-    <p class="eyebrow">Sector B · 광장 벽</p>
     <h1 class="page-title">게시판</h1>
-    <p class="lede">가입하지 않아도 누구나 글과 댓글을 남길 수 있어요. 비회원 글은 관리자만 지울 수 있으니 신중하게 써 주세요.</p>
+    <p class="lede">글과 댓글을 쓸 수 있어요. 비회원 글은 관리자만 지울 수 있어요.</p>
   </div>
 
   <section class="panel" id="view"><p class="hint">불러오는 중…</p></section>
@@ -56,7 +55,7 @@ let me = null, settings = null;
 
 function nameField(id) {
   const v = me ? UL.esc(me.nickname) : '';
-  return `<div class="field"><label for="${id}">이름</label><input class="input" id="${id}" maxlength="30" required value="${v}" ${me ? 'readonly' : ''} placeholder="거주자 이름"></div>`;
+  return `<div class="field"><label for="${id}">이름</label><input class="input" id="${id}" maxlength="30" required value="${v}" ${me ? 'readonly' : ''} placeholder="이름"></div>`;
 }
 
 async function showList() {
@@ -79,7 +78,7 @@ async function showList() {
         <span class="n">${(count || 0) - from - i}</span>
         <span class="t">${UL.esc(p.title)}</span>
         <span class="m">${UL.esc(p.author_name)} · ${UL.fmtDate(p.created_at)}</span>
-      </a></li>`).join('')}</ul>` : '<p class="hint">아직 글이 없어요. 첫 글을 남겨 보세요.</p>'}
+      </a></li>`).join('')}</ul>` : '<p class="hint">아직 글이 없어요.</p>'}
     ${pages > 1 ? `<nav class="pager" aria-label="페이지">
       ${page > 1 ? `<a class="btn small ghost" href="board.html?page=${page - 1}">이전</a>` : ''}
       <span class="tag">${page} / ${pages}</span>

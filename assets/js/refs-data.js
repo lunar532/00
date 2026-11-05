@@ -13,7 +13,7 @@ window.UL_REFS = [
   { repo: 'isl-org/Open3D', cat: '3D', desc: '점구름과 메시 처리 라이브러리(Python/C++). 스캔 데이터 정리에 많이 써요.' },
   { repo: 'cnr-isti-vclab/meshlab', cat: '3D', desc: '3D 스캔 메시를 다듬고 구멍을 메우는 데스크톱 프로그램.' },
   { repo: 'nerfstudio-project/nerfstudio', cat: '3D', desc: '사진·영상으로 NeRF 3D 장면을 만드는 프레임워크.' },
-  { repo: 'Leaflet/Leaflet', cat: '지도', desc: '가볍고 쉬운 웹 지도 라이브러리. 이 사이트의 지상 지도도 이걸로 만들었어요.' },
+  { repo: 'Leaflet/Leaflet', cat: '지도', desc: '가볍고 쉬운 웹 지도 라이브러리. 이 사이트의 지도도 이걸로 만들었어요.' },
   { repo: 'maplibre/maplibre-gl-js', cat: '지도', desc: '건물을 3D로 세우고 기울여 보는 벡터 지도. three.js 모델을 지도 위에 직접 올릴 수도 있어요.' },
   { repo: 'visgl/deck.gl', cat: '지도', desc: '지도 위에 대량의 데이터와 3D 레이어를 그리는 프레임워크.' },
   { repo: 'openlayers/openlayers', cat: '지도', desc: '기능이 아주 많은 오픈소스 웹 지도 라이브러리.' },

@@ -18,9 +18,9 @@
   --danger: #ff7a9c;
   --ok: #6dffc4;
 
-  --font-display: 'Bodoni Moda', 'Gowun Batang', 'Nanum Myeongjo', serif;
-  --font-ko-display: 'Gowun Batang', 'Nanum Myeongjo', serif;
-  --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+  --font-display: 'Bodoni Moda', 'Noto Sans KR', serif;
+  --font-ko-display: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  --font-body: 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --radius: 14px;
   color-scheme: dark;
