@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>게시판 · Underlume</title>
+<title>게시판 · 빛마루</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
   .list { list-style: none; margin: 0; padding: 0; }
@@ -30,7 +30,7 @@
   }
 </style>
 </head>
-<body data-page="board" data-layout="tri">
+<body data-page="board">
 <header id="site-header"></header>
 
 <main class="shell">
@@ -47,14 +47,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/common.js"></script>
-<script src="assets/js/underground.js"></script>
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-} }
-</script>
-<script type="module" src="assets/js/tunnel.js"></script>
 
 <script>
 const PAGE_SIZE = 20;
@@ -126,7 +118,7 @@ function showWrite() {
 async function showPost(id) {
   const { data: p, error } = await UL.client.from('posts').select('*').eq('id', id).maybeSingle();
   if (error || !p) { view.innerHTML = '<p class="msg error">글을 찾을 수 없어요. 지워졌을 수 있어요.</p><p><a href="board.html">목록으로</a></p>'; return; }
-  document.title = p.title + ' · Underlume';
+  document.title = p.title + ' · 빛마루';
   const canDelete = me && (me.role === 'admin' || me.id === p.user_id);
   view.innerHTML = `
     <article>

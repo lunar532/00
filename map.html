@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>지도 · Underlume</title>
+<title>지도 · 빛마루</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
@@ -14,8 +14,8 @@
   body { min-height: 0; display: grid; grid-template-rows: auto 1fr; }
   .site-header { position: static; }
   .map-app { display: grid; grid-template-columns: minmax(0, 1fr) 340px; min-height: 0; }
-  #map { min-height: 0; background: #040b2c; }
-  .side { overflow-y: auto; border-left: 1px solid var(--line); background: rgba(6, 14, 48, 0.92); padding-block: 18px 28px; padding-left: 18px; padding-right: max(18px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; align-content: start; }
+  #map { min-height: 0; background: var(--bg-2); }
+  .side { overflow-y: auto; border-left: 1px solid var(--line); background: var(--surface-solid); padding-block: 18px 28px; padding-left: 18px; padding-right: max(18px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; align-content: start; }
   .side h2 { font-family: var(--font-ko-display); font-size: 19px; }
   .side .form { gap: 10px; }
   .coords { font-family: var(--font-mono); font-size: 12px; color: var(--uv-cyan); }
@@ -23,19 +23,21 @@
   .results button { width: 100%; text-align: left; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--text); }
   .results button:hover { border-color: var(--line-hi); }
   .places { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-  .places li button { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; text-align: left; background: rgba(2, 5, 26, 0.5); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; color: var(--text); }
+  .places li button { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; color: var(--text); }
   .places li button:hover { border-color: var(--line-hi); }
   .places .dot { grid-row: span 2; width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; }
   .places .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
   .places .sub { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
 
-  /* 지도 타일을 사파이어빛 밤 지도로 */
-  .leaflet-tile-pane { filter: invert(1) hue-rotate(200deg) saturate(0.75) brightness(0.82) contrast(0.95); }
+  /* 지도 타일: 밝을 때는 부드러운 색, 어두울 때는 밤 지도로 */
+  .leaflet-tile-pane { filter: saturate(0.8) brightness(1.04); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .leaflet-tile-pane { filter: invert(1) hue-rotate(200deg) saturate(0.7) brightness(0.85); } }
+  :root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(200deg) saturate(0.7) brightness(0.85); }
   .leaflet-container { font-family: var(--font-body); }
-  .leaflet-control-attribution { background: rgba(2, 5, 26, 0.75) !important; color: var(--muted) !important; }
+  .leaflet-control-attribution { background: var(--surface) !important; color: var(--muted) !important; }
   .leaflet-control-attribution a { color: var(--uv-cyan) !important; }
-  .leaflet-bar a { background: #0a1640 !important; color: var(--text) !important; border-color: var(--line) !important; }
-  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #0a1640; color: var(--text); border: 1px solid var(--line-hi); box-shadow: 0 0 24px rgba(139, 77, 255, 0.45); }
+  .leaflet-bar a { background: var(--surface-solid) !important; color: var(--text) !important; border-color: var(--line) !important; }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface-solid); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow); }
   .leaflet-popup-content { margin: 12px 14px; font-size: 14px; }
   .leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
   .pop { display: grid; gap: 6px; min-width: 180px; }
@@ -50,8 +52,8 @@
   @keyframes ping { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(2.2); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .pin::before { animation: none; } }
 
-  dialog { width: min(1100px, calc(100vw - 24px)); height: min(820px, calc(100vh - 24px)); padding: 0; border: 1px solid var(--line-hi); border-radius: 14px; background: #040b2c; color: var(--text); box-shadow: 0 0 60px rgba(139, 77, 255, 0.45); }
-  dialog::backdrop { background: rgba(2, 5, 26, 0.75); backdrop-filter: blur(4px); }
+  dialog { width: min(1100px, calc(100vw - 24px)); height: min(820px, calc(100vh - 24px)); padding: 0; border: 1px solid var(--line-hi); border-radius: 18px; background: var(--bg); color: var(--text); box-shadow: 0 30px 80px -20px rgba(20, 40, 90, 0.5); }
+  dialog::backdrop { background: rgba(20, 30, 55, 0.45); backdrop-filter: blur(4px); }
   dialog[open] { display: grid; grid-template-rows: auto 1fr; }
   .dlg-head { display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
   .dlg-head b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-ko-display); font-size: 17px; }
@@ -112,11 +114,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/common.js"></script>
-<script src="assets/js/underground.js"></script>
 <script src="assets/js/places-db.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const COLORS = { '집': '#63f0ff', '공원': '#6dffc4', '건물': '#8b4dff', '기타': '#ff4fd8' };
+const COLORS = { '집': '#2f7bff', '공원': '#12b886', '건물': '#7b5cff', '기타': '#ef5da8' };
 const MODEL_EXT = ['glb', 'gltf', 'usdz', 'fbx', 'obj', 'ply', 'stl'];
 const extOf = n => (n.split('.').pop() || '').toLowerCase();
 

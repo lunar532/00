@@ -3,138 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Underlume</title>
-<meta name="description" content="3D 스캔 뷰어, 지도, 게시판, 참고자료">
+<title>빛마루</title>
+<meta name="description" content="눌러서 빛의 꽃을 피우는 정원, 3D 집 뷰어, 지도, 게시판">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
-  .hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 24px; align-items: center; min-height: 420px; }
-  .hero h1 {
-    font-family: var(--font-ko-display); font-weight: 900; text-transform: uppercase;
-    font-size: clamp(40px, 6.6vw, 100px); line-height: 0.92; letter-spacing: -0.03em;
-    background: var(--dirt), linear-gradient(175deg, #f1e6d6 0%, #b9a58e 38%, #6d86d8 70%, #2f7bff 100%);
-    background-size: 220px 220px, auto;
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.9)) drop-shadow(0 0 26px rgba(47, 123, 255, 0.4));
+  .garden-wrap { position: relative; border-radius: 28px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); min-height: 520px; height: min(72vh, 680px); }
+  #garden { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+  .garden-copy { position: absolute; left: 28px; top: 26px; right: 28px; pointer-events: none; display: grid; gap: 8px; max-width: 560px; }
+  .garden-copy h1 { font-weight: 800; font-size: clamp(30px, 5.4vw, 56px); line-height: 1.08; color: var(--g-ink, #13203a); text-shadow: 0 2px 24px rgba(255, 255, 255, 0.5); }
+  .garden-copy p { margin: 0; color: var(--g-sub, #34476a); font-size: 15px; }
+  .garden-wrap[data-time="night"], .garden-wrap[data-time="dusk"] { --g-ink: #f4f6ff; --g-sub: #d2dcf5; }
+  .garden-wrap[data-time="night"] .garden-copy h1, .garden-wrap[data-time="dusk"] .garden-copy h1 { text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35); }
+  .tools {
+    position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    padding: 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line);
+    backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
   }
-  .hero .ko { font-family: var(--font-ko-display); font-weight: 700; font-size: clamp(18px, 2.6vw, 23px); margin: 16px 0 10px; color: #d9cbb8; }
-  .hero .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-  .figure { position: relative; aspect-ratio: 3 / 4; max-width: 100%; justify-self: center; width: min(360px, 100%); }
-  .figure svg { width: 100%; height: 100%; overflow: visible; }
-  .figure .c { fill: none; stroke-linecap: round; filter: url(#heroglow); }
-  @media (prefers-reduced-motion: reduce) { .figure .drip { display: none; } }
+  .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--text) 6%, transparent); }
+  .seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--surface-solid); color: var(--text); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+  .count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 0 6px; }
+  .toast { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); padding: 8px 14px; border-radius: 999px; background: var(--surface-solid); border: 1px solid var(--line); font-size: 13px; box-shadow: var(--shadow); }
 
-  .notice { display: flex; gap: 12px; align-items: baseline; }
-  .notice .eyebrow { flex: none; }
-  .notice p { margin: 0; white-space: pre-wrap; }
+  .promise { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+  .promise .q { font-size: clamp(18px, 2.4vw, 22px); font-weight: 500; line-height: 1.5; margin: 0; min-height: 3em; display: flex; align-items: center; }
+  .promise .dot { width: 46px; height: 46px; border-radius: 50%; background: conic-gradient(from 0deg, var(--aurora-1), var(--aurora-3), var(--aurora-2), var(--aurora-4), var(--aurora-1)); animation: spin 14s linear infinite; box-shadow: 0 0 24px color-mix(in srgb, var(--aurora-3) 70%, transparent); }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .doors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+  .doors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   .door {
-    position: relative; text-decoration: none; color: var(--text);
-    display: grid; gap: 8px; align-content: start; min-height: 130px;
-    padding: 20px;
-    background: var(--sweat), linear-gradient(165deg, rgba(30, 22, 19, 0.82), rgba(10, 13, 32, 0.92) 70%), var(--dirt), #221a16;
-    background-size: 160px 120px, auto, 220px 220px, auto;
-    clip-path: polygon(0 4%, 5% 0, 62% 2%, 96% 0, 100% 6%, 99% 58%, 100% 95%, 94% 100%, 40% 98%, 4% 100%, 0 93%, 1% 40%);
-    overflow: hidden;
-    transition: transform .2s, filter .2s;
+    --mx: 50%; --my: 0%;
+    position: relative; display: grid; gap: 10px; align-content: start; min-height: 170px; padding: 22px;
+    text-decoration: none; color: var(--text); border-radius: var(--radius); overflow: hidden;
+    background: radial-gradient(240px circle at var(--mx) var(--my), color-mix(in srgb, var(--aurora-3) 45%, transparent), transparent 70%), var(--surface);
+    border: 1px solid var(--line); box-shadow: var(--shadow);
+    transition: transform .25s, border-color .25s;
   }
-  .door::before { content: ""; position: absolute; inset: 0; border-top: 2px solid rgba(47, 123, 255, 0.55); pointer-events: none; }
-  .door::after {
-    content: ""; position: absolute; left: 50%; top: -40%; width: 240px; height: 240px; transform: translateX(-50%); border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 214, 160, 0.22), transparent 65%);
-    opacity: 0; transition: opacity .25s;
-  }
-  .door:hover { transform: translateY(-3px); filter: brightness(1.15); color: var(--text); }
-  .door:hover::after { opacity: 1; }
-  .door .code { font-family: var(--font-mono); font-size: 11px; color: var(--uv-cyan); letter-spacing: .12em; }
-  .door h3 { font-family: var(--font-ko-display); font-weight: 900; font-size: 21px; color: #f0e6d8; text-shadow: 0 -1px 0 #000; }
-  .door p { margin: 0; color: var(--muted); font-size: 13px; }
+  .door:hover { transform: translateY(-4px); border-color: var(--line-hi); color: var(--text); }
+  .door .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+  .door .ic svg { width: 22px; height: 22px; }
+  .door h3 { font-size: 18px; font-weight: 800; }
+  .door p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
+  .door .go { margin-top: auto; font-size: 13px; color: var(--accent); font-weight: 600; }
 
-  .latest { display: grid; gap: 14px; }
   .latest ul { list-style: none; margin: 0; padding: 0; display: grid; }
   .latest li a { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--text); min-width: 0; }
-  .latest li a:hover .t { color: var(--uv-cyan); }
+  .latest li a:hover .t { color: var(--accent); }
   .latest .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .latest .m { color: var(--muted); font-size: 12px; font-family: var(--font-mono); white-space: nowrap; }
 
-  @media (max-width: 1080px) { .doors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (max-width: 860px) {
-    .hero { grid-template-columns: minmax(0, 1fr); min-height: 0; }
-    .figure { width: min(240px, 70%); grid-row: 1; }
-    .doors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 900px) { .doors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) {
+    .doors { grid-template-columns: minmax(0, 1fr); }
+    .garden-wrap { height: auto; min-height: 0; display: grid; grid-template-rows: 440px auto; }
+    #garden { position: relative; grid-row: 1; }
+    .tools { position: static; grid-row: 2; margin: 8px; border-radius: 16px; }
+    .garden-copy { left: 18px; right: 18px; top: 18px; }
+    .promise { grid-template-columns: auto minmax(0, 1fr); }
+    .promise .btn { grid-column: 1 / -1; }
   }
-  @media (max-width: 460px) { .doors { grid-template-columns: minmax(0, 1fr); } }
+  @media (prefers-reduced-motion: reduce) { .promise .dot { animation: none; } }
 </style>
 </head>
-<body data-page="index" data-layout="tri">
+<body data-page="index">
 <header id="site-header"></header>
 
 <main class="shell">
-  <section class="hero">
-    <div>
-      <h1 id="site-name">Underlume</h1>
-      <p class="ko">3D 뷰어 · 지도 · 게시판 · 참고자료</p>
-      <p class="lede">폰으로 스캔한 3D 파일을 열어 보고, 지도에 놓고, 게시판에 글을 남길 수 있어요.</p>
-      <div class="actions">
-        <a class="btn primary" href="viewer.html">내 집 3D로 보기</a>
-        <a class="btn" href="board.html">게시판 가기</a>
+  <section class="garden-wrap" id="garden-wrap" data-time="day" aria-label="빛의 정원">
+    <canvas id="garden" aria-label="화면을 누르면 그 자리에 빛나는 꽃이 피어나요"></canvas>
+    <div class="garden-copy">
+      <p class="eyebrow">빛마루 · 지하 정원 도시</p>
+      <h1 id="site-name">눌러서 빛을 심어요</h1>
+      <p id="garden-hint">아무 곳이나 누르면 꽃이 자라요. 끌면 바람이 불어요.</p>
+    </div>
+    <div class="toast" id="toast" hidden></div>
+    <div class="tools" role="toolbar" aria-label="정원 도구">
+      <div class="seg" role="group" aria-label="꽃 종류" id="kind-seg">
+        <button type="button" data-kind="0" aria-pressed="true">별꽃</button>
+        <button type="button" data-kind="1" aria-pressed="false">이슬꽃</button>
+        <button type="button" data-kind="2" aria-pressed="false">나선꽃</button>
       </div>
-    </div>
-    <div class="figure" aria-hidden="true">
-      <svg viewBox="0 0 300 400">
-        <defs>
-          <linearGradient id="hg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63f0ff"/><stop offset=".55" stop-color="#7a5cff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient>
-          <filter id="heroglow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          <filter id="rough" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="5"/></filter>
-          <filter id="mud" x="-40%" y="-40%" width="180%" height="180%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="4" seed="2" result="n"/>
-            <feColorMatrix in="n" values="0 0 0 0 .38  0 0 0 0 .27  0 0 0 0 .18  0 0 0 -2.2 1.35" result="g"/>
-            <feComposite in="g" in2="SourceAlpha" operator="in" result="c"/>
-            <feGaussianBlur in="c" stdDeviation=".6"/>
-          </filter>
-          <radialGradient id="bead" cx=".35" cy=".3" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".3" stop-color="#bcd2ff" stop-opacity=".45"/><stop offset="1" stop-color="#2f5bd0" stop-opacity="0"/></radialGradient>
-        </defs>
-        <!-- 흙이 묻은 자리 -->
-        <g filter="url(#mud)" opacity=".5">
-          <ellipse cx="104" cy="160" rx="26" ry="40"/><ellipse cx="200" cy="230" rx="30" ry="46"/>
-          <ellipse cx="88" cy="300" rx="22" ry="34"/><ellipse cx="214" cy="110" rx="18" ry="28"/>
-        </g>
-        <!-- 허리와 골반의 곡선 -->
-        <g filter="url(#rough)">
-          <path class="c" stroke="url(#hg1)" stroke-width="2.6" d="M 110 0 C 92 60, 88 110, 104 150 C 120 190, 128 205, 96 250 C 66 292, 64 340, 92 400" id="curveL"/>
-          <path class="c" stroke="url(#hg1)" stroke-width="2.6" d="M 190 0 C 208 60, 212 110, 196 150 C 180 190, 172 205, 204 250 C 234 292, 236 340, 208 400" id="curveR"/>
-          <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 128 0 C 114 70, 112 115, 124 150 C 136 185, 142 210, 118 250 C 96 290, 96 340, 116 400"/>
-          <path class="c" stroke="url(#hg1)" stroke-width="1" opacity=".5" d="M 172 0 C 186 70, 188 115, 176 150 C 164 185, 158 210, 182 250 C 204 290, 204 340, 184 400"/>
-        </g>
-        <!-- 땀방울 -->
-        <g fill="url(#bead)">
-          <ellipse cx="101" cy="132" rx="4" ry="5"/><ellipse cx="114" cy="196" rx="3" ry="4"/><ellipse cx="80" cy="282" rx="5" ry="6"/>
-          <ellipse cx="199" cy="128" rx="3.4" ry="4.4"/><ellipse cx="186" cy="206" rx="4.4" ry="5.6"/><ellipse cx="222" cy="300" rx="3" ry="4"/>
-          <ellipse cx="150" cy="176" rx="2.4" ry="3"/><ellipse cx="146" cy="262" rx="3" ry="3.8"/>
-          <ellipse class="drip" rx="3.6" ry="4.8"><animateMotion dur="7s" repeatCount="indefinite" rotate="0"><mpath href="#curveL"/></animateMotion></ellipse>
-          <ellipse class="drip" rx="3" ry="4"><animateMotion dur="9s" begin="-3s" repeatCount="indefinite" rotate="0"><mpath href="#curveR"/></animateMotion></ellipse>
-        </g>
-      </svg>
+      <div class="seg" role="group" aria-label="시간" id="time-seg">
+        <button type="button" data-time="dawn" aria-pressed="false">새벽</button>
+        <button type="button" data-time="day" aria-pressed="true">낮</button>
+        <button type="button" data-time="dusk" aria-pressed="false">노을</button>
+        <button type="button" data-time="night" aria-pressed="false">밤</button>
+      </div>
+      <button class="btn small" type="button" id="sound-btn" aria-pressed="false">소리 켜기</button>
+      <button class="btn small" type="button" id="wind-btn">바람</button>
+      <button class="btn small" type="button" id="plant-btn">꽃 심기</button>
+      <span class="spacer"></span>
+      <span class="count" id="count">0송이</span>
+      <button class="btn small ghost" type="button" id="clear-btn">비우기</button>
+      <button class="btn small primary" type="button" id="share-btn">내 정원 링크 복사</button>
     </div>
   </section>
 
-  <section class="panel notice" id="notice" hidden>
-    <p class="eyebrow">공지</p>
-    <p id="notice-text"></p>
+  <section class="panel promise" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span>
+    <p class="q" id="promise"></p>
+    <button class="btn small" type="button" id="promise-btn">다른 문장</button>
   </section>
 
-  <section class="doors" aria-label="메뉴">
-    <a class="door" href="viewer.html"><h3>3D 뷰어</h3><p>3D 스캔 파일 열기, 평면도, 걸어보기, 치수 재기, 벽에 사진 걸기</p></a>
-    <a class="door" href="board.html"><h3>게시판</h3><p>글과 댓글 쓰기</p></a>
-    <a class="door" href="map.html"><h3>지도</h3><p>3D 모델을 실제 위치에 놓고, 핀을 눌러 보기</p></a>
-    <a class="door" href="refs.html"><h3>참고자료</h3><p>GitHub 추천 코드 10개 (방문할 때마다 바뀜)</p></a>
-    <a class="door" href="account.html"><h3>계정</h3><p>가입·로그인, 관리자 설정</p></a>
+  <section class="doors" aria-label="메뉴" id="doors">
+    <a class="door" href="viewer.html">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
+      <h3>3D 뷰어</h3><p>폰으로 스캔한 집 파일을 열고, 평면도·걸어보기·치수 재기·벽에 사진 걸기를 해요.</p><span class="go">열기 →</span>
+    </a>
+    <a class="door" href="map.html">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg></span>
+      <h3>지도</h3><p>3D 모델을 실제 장소에 놓고, 핀을 눌러 바로 둘러봐요.</p><span class="go">열기 →</span>
+    </a>
+    <a class="door" href="board.html">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
+      <h3>게시판</h3><p>글과 댓글로 이야기를 나눠요.</p><span class="go">열기 →</span>
+    </a>
+    <a class="door" href="refs.html">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></span>
+      <h3>참고자료</h3><p>GitHub 추천 코드 10개. 들를 때마다 바뀌어요.</p><span class="go">열기 →</span>
+    </a>
   </section>
 
-  <section class="panel latest">
+  <section class="panel latest" id="latest-panel">
     <div class="row"><h2 class="section-title">새 글</h2><span class="spacer"></span><a href="board.html">전체 보기</a></div>
     <div id="latest"><p class="hint">불러오는 중…</p></div>
   </section>
@@ -145,24 +138,38 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/common.js"></script>
-<script src="assets/js/underground.js"></script>
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-} }
-</script>
-<script type="module" src="assets/js/tunnel.js"></script>
-
+<script src="assets/js/garden.js"></script>
 <script>
+// 오늘의 문장 (빛마루의 약속)
+const PROMISES = [
+  '누구도 혼자 어둠을 지나지 않는다.',
+  '빛은 나눌수록 줄지 않는다.',
+  '오늘 심은 씨앗은 내일의 누군가를 위한 것.',
+  '서두르지 않아도 꽃은 핀다.',
+  '우리가 켠 불빛이 이 도시의 하늘이 된다.',
+  '물과 빛과 쉼은 모두의 것.',
+  '다르게 자라는 꽃이 정원을 완성한다.',
+  '천천히 걷는 사람도 함께 도착한다.',
+];
+let pi = Math.floor(Math.random() * PROMISES.length);
+const pEl = document.getElementById('promise');
+function showPromise() { pEl.textContent = PROMISES[pi]; }
+document.getElementById('promise-btn').addEventListener('click', () => { pi = (pi + 1 + Math.floor(Math.random() * (PROMISES.length - 1))) % PROMISES.length; showPromise(); });
+showPromise();
+
+// 카드 위에 손가락·마우스를 따라가는 빛
+document.querySelectorAll('.door').forEach(d => d.addEventListener('pointermove', e => {
+  const r = d.getBoundingClientRect();
+  d.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+  d.style.setProperty('--my', (e.clientY - r.top) + 'px');
+}));
+
+// 새 글
 (async () => {
   const box = document.getElementById('latest');
-  if (!UL.configured) { box.innerHTML = UL.setupNotice(); return; }
+  if (!UL.configured) { document.getElementById('latest-panel').hidden = true; return; }
   const s = await UL.getSettings();
-  if (s) {
-    if (s.site_name) { document.getElementById('site-name').textContent = s.site_name; document.title = s.site_name; }
-    if (s.notice) { document.getElementById('notice-text').textContent = s.notice; document.getElementById('notice').hidden = false; }
-  }
+  if (s && s.notice) document.getElementById('garden-hint').textContent = s.notice;
   const { data, error } = await UL.client.from('posts').select('id, title, author_name, created_at').order('created_at', { ascending: false }).limit(5);
   if (error) { box.innerHTML = `<p class="msg error">글을 불러오지 못했어요: ${UL.esc(error.message)}</p>`; return; }
   if (!data.length) { box.innerHTML = '<p class="hint">아직 글이 없어요.</p>'; return; }
