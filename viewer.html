@@ -3,29 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>3D 집 뷰어 · Underlume</title>
+<title>3D 집 뷰어 · 빛마루</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
 /* Layout: drafting-table app. 3D stage fills the left, an instrument panel on the right; stacks on phones. */
 :root {
-  --bg: #02051a;
-  --panel: #08123a;
-  --line: #1f2b66;
-  --fg: #e7ecff;
-  --muted: #8f9ccc;
-  --accent: #63f0ff;
-  --accent-fg: #02051a;
-  --accent-soft: #17255f;
-  --stage: #040b2c;
-  --grid: #142259;
-  --grid-strong: #2f4bb0;
-  --danger: #ff7a9c;
-  --uvp: #ff4fd8;
+  --bg: #eef2f6; --panel: #ffffff; --line: #d6deea; --fg: #19222f; --muted: #5b6a80;
+  --accent: #2456d6; --accent-fg: #ffffff; --accent-soft: #dfe7fb;
+  --stage: #e6edf5; --grid: #c8d3e1; --grid-strong: #8fa1ba; --danger: #c4314b; --uvp: #0f9f7c;
   --font-body: 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a111f; --panel: #121c31; --line: #24324d; --fg: #e8eefb; --muted: #97a6c2;
+    --accent: #86abff; --accent-fg: #0a111f; --accent-soft: #1c2a4a;
+    --stage: #0e1729; --grid: #1d2a44; --grid-strong: #3b5180; --danger: #ff8fa3; --uvp: #5fe0bd;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a111f; --panel: #121c31; --line: #24324d; --fg: #e8eefb; --muted: #97a6c2;
+  --accent: #86abff; --accent-fg: #0a111f; --accent-soft: #1c2a4a;
+  --stage: #0e1729; --grid: #1d2a44; --grid-strong: #3b5180; --danger: #ff8fa3; --uvp: #5fe0bd;
   color-scheme: dark;
 }
 [hidden] { display: none !important; }
@@ -151,13 +154,13 @@ output { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: t
   .modes button { flex: 1; }
 }
 
-.site-header { position: static; }
+.site-header { position: static; padding-bottom: 10px; }
 .bar { background: var(--panel); }
 .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 6px; }
 .thumb { aspect-ratio: 1; max-width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--bg); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.thumb[aria-pressed="true"] { border: 2px solid var(--uvp); box-shadow: 0 0 12px rgba(255, 79, 216, 0.55); }
-.vbtn-small[aria-pressed="true"] { border-color: var(--uvp); color: var(--fg); background: rgba(255, 79, 216, 0.15); }
+.thumb[aria-pressed="true"] { border: 2px solid var(--uvp); box-shadow: 0 0 0 3px color-mix(in srgb, var(--uvp) 25%, transparent); }
+.vbtn-small[aria-pressed="true"] { border-color: var(--uvp); color: var(--fg); background: color-mix(in srgb, var(--uvp) 14%, transparent); }
 @media (max-width: 760px) { .site-header .hud { display: none; } }
 body.embed .site-header { display: none; }
 body.embed .app { grid-template-rows: auto 1fr; }
@@ -1090,6 +1093,5 @@ tick();
 <script src="assets/js/config.js"></script>
 <script src="assets/js/common.js"></script>
 <script src="assets/js/places-db.js"></script>
-<script src="assets/js/underground.js"></script>
 </body>
 </html>

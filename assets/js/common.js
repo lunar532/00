@@ -1,11 +1,11 @@
-// 모든 페이지가 같이 쓰는 코드: 배경, 머리글, Supabase 연결, 작은 도우미 함수.
+// 모든 페이지가 같이 쓰는 코드: 오로라 하늘, 머리글, 밝기 테마, Supabase 연결, 작은 도우미 함수.
 (function () {
   const cfg = window.UL_CONFIG || {};
   const hasKeys = !!(cfg.supabaseUrl && cfg.supabaseAnonKey);
   const client = hasKeys && window.supabase ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey) : null;
 
   const NAV = [
-    ['index.html', '홈'],
+    ['index.html', '빛의 정원'],
     ['viewer.html', '3D 뷰어'],
     ['map.html', '지도'],
     ['board.html', '게시판'],
@@ -13,162 +13,54 @@
     ['account.html', '계정'],
   ];
 
-  // 동굴 벽: 노이즈에 빛을 비춰 울퉁불퉁한 암벽을 만들고, 그 위에 사파이어 광맥과 블랙라이트에 빛나는 금을 그어요.
-  const BACKDROP = `
-  <svg class="rock" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <defs>
-      <filter id="rockwall" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.0085 0.014" numOctaves="6" seed="11" result="n"/>
-        <feDiffuseLighting in="n" surfaceScale="9" diffuseConstant="1.15" lighting-color="#9fb4ff" result="lit">
-          <feDistantLight azimuth="250" elevation="34"/>
-        </feDiffuseLighting>
-        <feComposite in="lit" in2="SourceGraphic" operator="arithmetic" k1="1" k2="0" k3="0" k4="0"/>
-      </filter>
-      <filter id="grit" x="0" y="0" width="100%" height="100%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/>
-        <feColorMatrix values="0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0 0.2  0 0 0 -1.6 1.15"/>
-      </filter>
-      <filter id="jag" x="-10%" y="-10%" width="120%" height="120%">
-        <feTurbulence type="turbulence" baseFrequency="0.035" numOctaves="3" seed="5" result="t"/>
-        <feDisplacementMap in="SourceGraphic" in2="t" scale="26" xChannelSelector="R" yChannelSelector="G" result="d"/>
-        <feGaussianBlur in="d" stdDeviation="2.6" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="d"/></feMerge>
-      </filter>
-      <linearGradient id="strata" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#2a2130"/><stop offset=".35" stop-color="#3a2c26"/>
-        <stop offset=".6" stop-color="#2b2a3c"/><stop offset="1" stop-color="#1a2348"/>
-      </linearGradient>
-    </defs>
-    <rect width="1600" height="1000" fill="url(#strata)" filter="url(#rockwall)"/>
-    <rect width="1600" height="1000" filter="url(#grit)" opacity=".55"/>
-    <g filter="url(#jag)" fill="none" stroke-linecap="round">
-      <path class="vein" stroke="#2f7bff" stroke-width="2.2" d="M -40 610 C 180 560, 260 700, 460 650 S 760 520, 900 610 S 1180 760, 1320 690 S 1520 560, 1660 600"/>
-      <path class="vein v2" stroke="#9b5cff" stroke-width="1.4" d="M 980 -20 C 940 120, 1060 220, 1010 360 S 900 520, 960 640"/>
-      <path class="vein v3" stroke="#ff4fd8" stroke-width="1.1" d="M 120 -20 C 160 140, 60 260, 140 380 S 260 520, 200 700"/>
-      <path class="vein" stroke="#63f0ff" stroke-width="1" d="M 1600 220 C 1440 260, 1380 180, 1240 250 S 1080 330, 1000 300"/>
-    </g>
-  </svg>
-  <canvas class="drops" aria-hidden="true"></canvas>
-  <div class="lamp"></div>`;
-
-  // 헤드램프(마우스/손가락을 따라가는 불빛), 떠다니는 흙먼지, 벽을 타고 흐르는 물방울·땀방울
-  function initCave(root) {
-    const lamp = root.querySelector('.lamp');
-    const setLamp = (x, y) => { lamp.style.setProperty('--mx', x + 'px'); lamp.style.setProperty('--my', y + 'px'); };
-    setLamp(innerWidth * 0.62, innerHeight * 0.28);
-    addEventListener('pointermove', e => setLamp(e.clientX, e.clientY), { passive: true });
-
-    const cv = root.querySelector('canvas.drops');
-    const ctx = cv.getContext('2d');
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W = 0, H = 0, dpr = 1, drops = [], dust = [];
-    function resize() {
-      dpr = Math.min(devicePixelRatio || 1, 2);
-      W = innerWidth; H = innerHeight;
-      cv.width = W * dpr; cv.height = H * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const area = W * H / 100000;
-      drops = Array.from({ length: Math.round(8 + area * 2.2) }, () => newDrop(true));
-      dust = Array.from({ length: Math.round(20 + area * 4) }, newDust);
-    }
-    function newDrop(anyY) {
-      return { x: Math.random() * W, y: anyY ? Math.random() * H : -10, r: 1.6 + Math.random() * 3.2, v: 0, hold: Math.random() * 200, trail: [] };
-    }
-    function newDust() {
-      return { x: Math.random() * W, y: Math.random() * H, r: 0.4 + Math.random() * 1.4, vx: (Math.random() - 0.5) * 0.12, vy: -0.03 - Math.random() * 0.1, a: 0.15 + Math.random() * 0.45 };
-    }
-    function drawDrop(d) {
-      // 꼬리 자국
-      if (d.trail.length > 1) {
-        ctx.beginPath(); ctx.moveTo(d.trail[0][0], d.trail[0][1]);
-        d.trail.forEach(([x, y]) => ctx.lineTo(x, y));
-        ctx.strokeStyle = 'rgba(170, 200, 255, 0.07)'; ctx.lineWidth = d.r * 0.9; ctx.lineCap = 'round'; ctx.stroke();
-      }
-      // 물방울 몸통 (위는 가늘고 아래는 둥글게)
-      const g = ctx.createRadialGradient(d.x - d.r * 0.3, d.y - d.r * 0.2, d.r * 0.1, d.x, d.y, d.r * 1.4);
-      g.addColorStop(0, 'rgba(255,255,255,0.75)');
-      g.addColorStop(0.25, 'rgba(160,190,255,0.28)');
-      g.addColorStop(1, 'rgba(40,70,160,0)');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(d.x, d.y, d.r, d.r * 1.25, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    function frame() {
-      ctx.clearRect(0, 0, W, H);
-      const mx = parseFloat(lamp.style.getPropertyValue('--mx')) || 0, my = parseFloat(lamp.style.getPropertyValue('--my')) || 0;
-      dust.forEach(p => {
-        p.x += p.vx; p.y += p.vy;
-        if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; }
-        if (p.x < -5) p.x = W + 5; if (p.x > W + 5) p.x = -5;
-        const near = Math.max(0, 1 - Math.hypot(p.x - mx, p.y - my) / 380);
-        ctx.fillStyle = `rgba(255, 226, 190, ${p.a * (0.25 + near * 1.2)})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-      });
-      drops.forEach((d, i) => {
-        if (d.hold > 0) d.hold -= 1;
-        else {
-          d.v = Math.min(d.v + 0.02 * d.r, 2.4);
-          d.y += d.v; d.x += Math.sin(d.y * 0.05) * 0.15;
-          d.trail.push([d.x, d.y]); if (d.trail.length > 40) d.trail.shift();
-          if (Math.random() < 0.012) { d.hold = 30 + Math.random() * 160; d.v = 0; }
-        }
-        drawDrop(d);
-        if (d.y > H + 20) drops[i] = newDrop(false);
-      });
-      if (!reduce && !document.hidden) requestAnimationFrame(frame);
-    }
-    resize();
-    addEventListener('resize', resize);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden && !reduce) requestAnimationFrame(frame); });
-    frame();
+  // 밝기 테마: 시스템 → 밝게 → 어둡게 순서로 바뀌어요
+  const THEMES = ['system', 'light', 'dark'];
+  const ICON = {
+    system: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
+    light: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    dark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+  };
+  const THEME_NAME = { system: '시스템 설정 따르기', light: '밝게', dark: '어둡게' };
+  function getTheme() { try { return localStorage.getItem('bm-theme') || 'system'; } catch (e) { return 'system'; } }
+  function applyTheme(t) {
+    if (t === 'system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
   }
+  applyTheme(getTheme());
 
+  const MARK = '<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="bm-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe9cf"/><stop offset=".5" stop-color="#9fd2ff"/><stop offset="1" stop-color="#c5b6ff"/></linearGradient></defs><circle cx="16" cy="16" r="15" fill="url(#bm-g)"/><path d="M16 26c0-6 0-9 0-12" stroke="#2456d6" stroke-width="2" stroke-linecap="round"/><path d="M16 14c-4-1-6-4-6-7 4 0 6 3 6 7zM16 14c4-1 6-4 6-7-4 0-6 3-6 7z" fill="#2456d6"/><circle cx="16" cy="12" r="2.4" fill="#fff"/></svg>';
 
   function renderChrome() {
     const page = document.body.dataset.page || '';
-    const bg = document.createElement('div');
-    bg.className = 'abyss';
-    bg.innerHTML = BACKDROP;
-    document.body.prepend(bg);
-    try { if (!['viewer', 'map'].includes(page)) initCave(bg); } catch (e) { /* 효과가 안 돼도 사이트는 그대로 */ }
+    const sky = document.createElement('div');
+    sky.className = 'sky'; sky.setAttribute('aria-hidden', 'true');
+    sky.innerHTML = '<i></i><i></i><i></i><i></i>';
+    document.body.prepend(sky);
 
     const header = document.getElementById('site-header');
-    const tri = document.body.dataset.layout === 'tri';
-    if (header && tri) {
-      // 삼분할: 왼쪽 메뉴 / 오른쪽 위 내용 / 아래 갱도
-      header.className = 'site-side';
-      header.innerHTML = `
-        <a class="wordmark" href="index.html"><b>Underlume</b></a>
-        <nav class="side-nav" aria-label="사이트 메뉴">
-          ${NAV.map(([href, label], i) => `<a href="${href}" data-station="${i}" ${href.startsWith(page) && page ? 'aria-current="page"' : ''} ${href === 'account.html' ? 'id="nav-account"' : ''}>
-            <span class="st">${String(i + 1).padStart(2, '0')}</span><span class="lb">${label}</span></a>`).join('')}
-        </nav>`;
-      const scroll = document.createElement('div');
-      scroll.className = 'content-scroll';
-      [...document.body.children].forEach(el => {
-        if (el.matches('main, footer, #site-footer')) scroll.append(el);
-      });
-      header.after(scroll);
-      const strip = document.createElement('div');
-      strip.className = 'tunnel-strip'; strip.id = 'tunnel';
-      strip.innerHTML = '<div class="tunnel-cap"><span id="tunnel-here"></span></div><div class="tunnel-bubble" id="tunnel-bubble" hidden></div>';
-      scroll.after(strip);
-    } else if (header) {
+    if (header) {
       header.className = 'site-header';
       header.innerHTML = `
         <div class="inner">
-          <a class="wordmark" href="index.html"><b>Underlume</b></a>
+          <a class="wordmark" href="index.html">${MARK}<b>빛마루</b><span>BITMARU</span></a>
           <nav class="nav" aria-label="사이트 메뉴">
             ${NAV.map(([href, label]) => `<a href="${href}" ${href.startsWith(page) && page ? 'aria-current="page"' : ''} ${href === 'account.html' ? 'id="nav-account"' : ''}>${label}</a>`).join('')}
           </nav>
-        </div>
-        `;
+          <button class="theme-btn" type="button" id="theme-btn"></button>
+        </div>`;
+      const btn = header.querySelector('#theme-btn');
+      const paint = () => { const t = getTheme(); btn.innerHTML = ICON[t]; btn.setAttribute('aria-label', '화면 밝기: ' + THEME_NAME[t]); btn.title = '화면 밝기: ' + THEME_NAME[t]; };
+      paint();
+      btn.addEventListener('click', () => {
+        const next = THEMES[(THEMES.indexOf(getTheme()) + 1) % THEMES.length];
+        try { localStorage.setItem('bm-theme', next); } catch (e) {}
+        applyTheme(next); paint();
+      });
     }
     const footer = document.getElementById('site-footer');
     if (footer) {
       footer.className = 'site-footer';
-      footer.textContent = 'UNDERLUME';
+      footer.textContent = '빛마루 · 함께 가꾸는 빛의 정원';
     }
     refreshAccountLink();
   }
