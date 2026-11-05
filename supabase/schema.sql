@@ -19,7 +19,7 @@ create table if not exists public.profiles (
 
 create table if not exists public.site_settings (
   id int primary key default 1 check (id = 1),
-  site_name text not null default 'UNDERLUME',
+  site_name text not null default '빛마루',
   notice text not null default '',
   board_open boolean not null default true,
   updated_at timestamptz not null default now()

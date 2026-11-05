@@ -186,7 +186,7 @@ async function renderSignedIn(me) {
   $('set-f').addEventListener('submit', async e => {
     e.preventDefault();
     const { error } = await UL.client.from('site_settings').update({
-      site_name: $('set-name').value.trim() || 'UNDERLUME',
+      site_name: $('set-name').value.trim() || '빛마루',
       notice: $('set-notice').value.trim(),
       board_open: $('set-open').checked,
       members_only: $('set-private').checked,
