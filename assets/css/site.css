@@ -208,3 +208,59 @@ textarea.input { min-height: 180px; resize: vertical; line-height: 1.6; }
   color: var(--muted); font-size: 12px; font-family: var(--font-mono); letter-spacing: 0.05em;
   border-top: 1px solid var(--line);
 }
+
+/* ---------- 갱도 엘리베이터 전환 ---------- */
+.shaft {
+  position: fixed; inset: 0; z-index: 200; pointer-events: none; overflow: hidden;
+  background: #07060a;
+}
+.shaft .strata {
+  position: absolute; inset: 0;
+  background:
+    var(--dirt),
+    linear-gradient(180deg,
+      #2b211b 0 90px, #3b2c23 90px 150px, #1a1d38 150px 230px, #2f7bff 230px 232px, #1a1d38 232px 260px,
+      #33271f 260px 360px, #0d0b0c 360px 384px, #5a3e2a 384px 388px, #0d0b0c 388px 400px,
+      #2a2236 400px 520px, #3d2e24 520px 640px, #9b5cff 640px 641px, #241c18 641px 760px, #14182f 760px 880px);
+  background-size: 220px 220px, 100% 880px;
+  animation: shaft-down .55s linear infinite;
+}
+.shaft.up .strata { animation-name: shaft-up; }
+@keyframes shaft-down { from { background-position: 0 0, 0 0; } to { background-position: 0 -440px, 0 -880px; } }
+@keyframes shaft-up { from { background-position: 0 0, 0 0; } to { background-position: 0 440px, 0 880px; } }
+.shaft::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 214, 160, 0.14), transparent 70%),
+              radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.85) 90%);
+}
+.shaft .rail { position: absolute; top: 0; bottom: 0; width: 12px; z-index: 1; background: linear-gradient(90deg, #141419, #5a5c6c 45%, #1b1b22); box-shadow: 0 0 18px rgba(0, 0, 0, 0.8); }
+.shaft .rail.l { left: 10%; } .shaft .rail.r { right: 10%; }
+.shaft .readout { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; justify-items: center; gap: 4px; text-align: center; }
+.shaft .arrow { color: var(--uv-cyan); font-size: 22px; text-shadow: 0 0 14px var(--uv-cyan); animation: pulse-arrow .5s ease-in-out infinite alternate; }
+.shaft .depth { font-family: var(--font-ko-display); font-weight: 900; font-size: clamp(44px, 9vw, 84px); color: #ece2d2; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 #000, 0 0 30px rgba(47, 123, 255, 0.5); }
+.shaft .dest { font-family: var(--font-ko-display); font-weight: 700; font-size: 16px; letter-spacing: .3em; color: #d9cbb8; text-shadow: 0 1px 0 #000; }
+@keyframes pulse-arrow { to { opacity: .35; transform: translateY(4px); } }
+
+/* ---------- 도트 생존자 ---------- */
+.survivor {
+  position: fixed; left: 0; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); z-index: 25;
+  pointer-events: none; will-change: transform;
+}
+.survivor canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; pointer-events: auto; cursor: pointer; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.8)); }
+.survivor canvas:focus-visible { outline: 2px solid var(--uv-cyan); outline-offset: 2px; }
+.survivor .beam {
+  position: absolute; left: 62%; top: 4%; width: 220px; height: 110px; transform-origin: 0 30%;
+  background: radial-gradient(ellipse at 0% 30%, rgba(255, 232, 170, 0.32), rgba(255, 232, 170, 0.06) 55%, transparent 75%);
+  clip-path: polygon(0 26%, 100% 0, 100% 100%, 0 34%);
+  mix-blend-mode: screen; transition: transform .3s;
+}
+.survivor .beam.left { left: auto; right: 62%; transform-origin: 100% 30%; transform: scaleX(-1); }
+.survivor .beam.down { transform: rotate(28deg); }
+.survivor .beam.left.down { transform: scaleX(-1) rotate(28deg); }
+.survivor .bubble {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 6px;
+  white-space: nowrap; font-size: 13px; font-weight: 500; color: #1a1208;
+  background: #efe2cc; padding: 6px 10px; border-radius: 4px; box-shadow: 0 0 0 2px #17110d, 4px 4px 0 #17110d;
+}
+.survivor .bubble::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -4px; border: 4px solid transparent; border-top-color: #17110d; }
+.survivor-toggle { margin-left: 10px; }
