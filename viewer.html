@@ -159,6 +159,11 @@ output { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: t
 .thumb[aria-pressed="true"] { border: 2px solid var(--uvp); box-shadow: 0 0 12px rgba(255, 79, 216, 0.55); }
 .vbtn-small[aria-pressed="true"] { border-color: var(--uvp); color: var(--fg); background: rgba(255, 79, 216, 0.15); }
 @media (max-width: 760px) { .site-header .hud { display: none; } }
+body.embed .site-header { display: none; }
+body.embed .app { grid-template-rows: auto 1fr; }
+body.embed .main { grid-template-columns: minmax(0, 1fr); }
+body.embed .vpanel { display: none; }
+@media (max-width: 760px) { body.embed .stage { height: calc(100vh - 120px); } }
 </style>
 </head>
 <body data-page="viewer">
@@ -948,6 +953,7 @@ async function loadFiles(list) {
     } else if (ext === 'stl') {
       const { STLLoader } = await import('three/addons/loaders/STLLoader.js');
       const geo = await new STLLoader(manager).loadAsync(url);
+      geo.computeVertexNormals(); // 법선이 비어 있는 STL도 음영이 보이게
       obj = geomToObject(geo, main.name, true);
     } else if (ext === 'usdz') {
       const { USDZLoader } = await import('three/addons/loaders/USDZLoader.js');
@@ -1055,6 +1061,19 @@ const sample = buildSampleHouse();
 setModel(sample, { name: '예시 집 (샘플) · 내 스캔 파일을 열어보세요', format: '예시 모델', stats: countStats(sample), autoUp: false });
 renderMeasureList();
 
+// 지도에서 열었을 때: viewer.html?place=<id>[&embed=1]
+const qs = new URLSearchParams(location.search);
+if (qs.get('embed')) document.body.classList.add('embed');
+const placeId = qs.get('place');
+if (placeId && placeId !== 'sample' && window.ULPlaces) {
+  ULPlaces.get(placeId).then(p => {
+    if (!p || !p.files || !p.files.length) { setStatus('이 장소의 3D 파일을 찾지 못했어요. 지도에 올린 브라우저에서만 열려요.', 'error'); return; }
+    loadFiles(p.files.map(f => new File([f.blob], f.name, { type: f.type || '' }))).then(() => {
+      $('file-name').textContent = `${p.name} · ${p.kind} · ${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`;
+    });
+  }).catch(() => setStatus('저장된 장소를 읽지 못했어요.', 'error'));
+}
+
 const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.1);
@@ -1067,7 +1086,9 @@ function tick() {
 }
 tick();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/common.js"></script>
+<script src="assets/js/places-db.js"></script>
 </body>
 </html>

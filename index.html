@@ -31,7 +31,7 @@
   .notice .eyebrow { flex: none; }
   .notice p { margin: 0; white-space: pre-wrap; }
 
-  .doors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .doors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
   .door {
     position: relative; text-decoration: none; color: var(--text);
     display: grid; gap: 8px; align-content: start; min-height: 170px;
@@ -58,6 +58,7 @@
   .latest .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .latest .m { color: var(--muted); font-size: 12px; font-family: var(--font-mono); white-space: nowrap; }
 
+  @media (max-width: 1080px) { .doors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 860px) {
     .hero { grid-template-columns: minmax(0, 1fr); min-height: 0; }
     .figure { width: min(240px, 70%); grid-row: 1; }
@@ -106,6 +107,7 @@
   <section class="doors" aria-label="구역 안내">
     <a class="door" href="viewer.html"><span class="code">SECTOR A · 주거 설계실</span><h3>3D 집 뷰어</h3><p>폰으로 스캔한 집 파일을 올려 둘러보고, 재고, 벽에 사진을 걸어요.</p></a>
     <a class="door" href="board.html"><span class="code">SECTOR B · 광장 벽</span><h3>게시판</h3><p>가입 없이 누구나 글을 남길 수 있어요.</p></a>
+    <a class="door" href="map.html"><span class="code">SURFACE · 지상 지도</span><h3>지도</h3><p>집, 공원, 건물 모델을 실제 위치에 놓고 눌러서 3D로 봐요.</p></a>
     <a class="door" href="refs.html"><span class="code">SECTOR C · 기록 보관소</span><h3>참고자료</h3><p>올 때마다 다른 GitHub 추천 코드 10개.</p></a>
     <a class="door" href="account.html"><span class="code">SECTOR D · 출입 관리</span><h3>계정</h3><p>가입과 로그인. 첫 가입자가 관리자가 돼요.</p></a>
   </section>

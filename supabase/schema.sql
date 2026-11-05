@@ -6,6 +6,8 @@
 --  * 게시판은 누구나(로그인 안 해도) 읽고 쓸 수 있습니다. 관리자가 '게시판 열기'를 끄면 쓰기가 막힙니다.
 --  * 글/댓글은 쓴 회원 본인 또는 관리자만 지울 수 있습니다. (비회원 글은 관리자만 지울 수 있음)
 --  * 회원 등급(role)은 관리자만 set_member_role 함수로 바꿀 수 있습니다.
+--  * members_only(기본 켜짐): 로그인한 회원만 게시판을 읽고 쓸 수 있습니다. 관리자가 끄면 누구나 이용.
+--  * allow_signup: 관리자가 끄면 새 가입이 데이터베이스에서 거절됩니다. (첫 관리자 가입은 항상 허용)
 
 -- ---------- 테이블 ----------
 create table if not exists public.profiles (
@@ -22,6 +24,8 @@ create table if not exists public.site_settings (
   board_open boolean not null default true,
   updated_at timestamptz not null default now()
 );
+alter table public.site_settings add column if not exists members_only boolean not null default true;
+alter table public.site_settings add column if not exists allow_signup boolean not null default true;
 insert into public.site_settings (id) values (1) on conflict (id) do nothing;
 
 create table if not exists public.posts (
@@ -55,11 +59,20 @@ returns boolean language sql stable security definer set search_path = public as
   select coalesce((select board_open from public.site_settings where id = 1), true);
 $$;
 
+create or replace function public.members_only()
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select members_only from public.site_settings where id = 1), true);
+$$;
+
 -- 가입하면 프로필을 만들고, 관리자가 아직 없으면 그 사람을 관리자로
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   perform pg_advisory_xact_lock(7340);  -- 동시에 두 명이 가입해도 관리자는 한 명만
+  if exists (select 1 from public.profiles where role = 'admin')
+     and not coalesce((select allow_signup from public.site_settings where id = 1), true) then
+    raise exception 'SIGNUP_CLOSED';
+  end if;
   insert into public.profiles (id, nickname, role)
   values (
     new.id,
@@ -124,11 +137,12 @@ revoke insert, delete on public.site_settings from anon, authenticated;
 
 -- posts: 누구나 읽기/쓰기(게시판이 열려 있을 때), 본인 또는 관리자 삭제
 drop policy if exists "posts read" on public.posts;
-create policy "posts read" on public.posts for select using (true);
+create policy "posts read" on public.posts for select using (not public.members_only() or auth.uid() is not null);
 drop policy if exists "posts write" on public.posts;
 create policy "posts write" on public.posts for insert to anon, authenticated
   with check (
     public.board_is_open()
+    and (not public.members_only() or auth.uid() is not null)
     and ((auth.uid() is null and user_id is null) or user_id = auth.uid())
   );
 drop policy if exists "posts delete" on public.posts;
@@ -138,11 +152,12 @@ revoke update on public.posts from anon, authenticated;
 
 -- comments: posts와 같은 규칙
 drop policy if exists "comments read" on public.comments;
-create policy "comments read" on public.comments for select using (true);
+create policy "comments read" on public.comments for select using (not public.members_only() or auth.uid() is not null);
 drop policy if exists "comments write" on public.comments;
 create policy "comments write" on public.comments for insert to anon, authenticated
   with check (
     public.board_is_open()
+    and (not public.members_only() or auth.uid() is not null)
     and ((auth.uid() is null and user_id is null) or user_id = auth.uid())
   );
 drop policy if exists "comments delete" on public.comments;

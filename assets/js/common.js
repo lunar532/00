@@ -7,6 +7,7 @@
   const NAV = [
     ['index.html', '거주구역'],
     ['viewer.html', '3D 뷰어'],
+    ['map.html', '지도'],
     ['board.html', '게시판'],
     ['refs.html', '참고자료'],
     ['account.html', '계정'],
@@ -100,8 +101,26 @@
     </div>`;
   }
 
+  // 회원 전용 모드: 관리자가 켜 두면 로그인하지 않은 사람은 계정 페이지로 보내요.
+  // (화면 가림은 편의 기능이고, 실제 글 보호는 데이터베이스 RLS가 해요.)
+  async function gate() {
+    const page = document.body.dataset.page || '';
+    if (!client || page === 'account') return;
+    try {
+      const [s, user] = await Promise.all([getSettings(), getUser()]);
+      if (s && s.members_only && !user) {
+        const here = location.pathname.split('/').pop() || 'index.html';
+        location.replace('account.html?locked=1&next=' + encodeURIComponent(here + location.search));
+        return;
+      }
+    } catch (e) { /* 설정을 못 읽으면 그냥 보여줘요 */ }
+    document.documentElement.classList.remove('ul-gating');
+  }
+  if (client) document.documentElement.classList.add('ul-gating');
+
   window.UL = { client, configured: !!client, getUser, getProfile, getSettings, refreshAccountLink, esc, fmtDate, setupNotice };
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderChrome);
-  else renderChrome();
+  const start = () => { renderChrome(); gate(); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
 })();
