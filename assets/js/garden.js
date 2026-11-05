@@ -1,4 +1,4 @@
-// 빛의 정원: 누르면 꽃이 자라고, 끌면 바람이 불고, 시간대와 소리를 바꿀 수 있어요.
+// 밤의 정원: 누르면 꽃이 피고, 끌면 꿀처럼 끈적한 빛줄기가 남아 천천히 흘러내려요.
 // 정원은 이 브라우저에 저장되고, 링크(#g=...)로 그대로 나눌 수 있어요.
 (function () {
   const wrap = document.getElementById('garden-wrap');
@@ -8,17 +8,18 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = id => document.getElementById(id);
 
-  const COLORS = ['#8fe9cf', '#9fd2ff', '#c5b6ff', '#ffc6dd', '#ffe6a3'];
+  const COLORS = ['#ff4d8d', '#ff8fb1', '#d36bff', '#ffb766', '#ffd6e4'];
   const KIND_NAME = ['별꽃', '이슬꽃', '나선꽃'];
   const SKY = {
-    dawn:  { top: '#c9d5ff', mid: '#ffd6e2', low: '#fff0de', hill1: '#d7e6e0', hill2: '#bcd6cc', stem: '#4c9c83', glow: 0.5, tower: 'rgba(120,130,190,.28)', win: 'rgba(255,240,200,.7)' },
-    day:   { top: '#9fd6ff', mid: '#d8f0ff', low: '#f2fbff', hill1: '#d3ebe2', hill2: '#b4dccd', stem: '#3f9b7d', glow: 0.3, tower: 'rgba(110,150,200,.22)', win: 'rgba(255,255,255,.7)' },
-    dusk:  { top: '#3a3f8f', mid: '#c27ab0', low: '#ffb08a', hill1: '#4a3f72', hill2: '#2f2c58', stem: '#6fd8b5', glow: 0.8, tower: 'rgba(40,30,80,.55)', win: 'rgba(255,214,150,.9)' },
-    night: { top: '#050a20', mid: '#111b45', low: '#243068', hill1: '#121d3e', hill2: '#0a1330', stem: '#5fe8bf', glow: 1, tower: 'rgba(20,30,70,.8)', win: 'rgba(150,220,255,.95)' },
+    dawn:  { top: '#3b1430', mid: '#a8456e', low: '#ffb39a', hill1: '#5a1d3a', hill2: '#3d1128', stem: '#ff9fbf', glow: 0.7, tower: 'rgba(60,10,35,.5)', win: 'rgba(255,210,170,.85)' },
+    day:   { top: '#5a1a3f', mid: '#c0487a', low: '#ffc3b0', hill1: '#7a2a4f', hill2: '#541a37', stem: '#ffb3cc', glow: 0.55, tower: 'rgba(80,20,50,.42)', win: 'rgba(255,230,210,.8)' },
+    dusk:  { top: '#1d0618', mid: '#7a1440', low: '#ff8a5c', hill1: '#3a0b25', hill2: '#240617', stem: '#ff7aa8', glow: 0.85, tower: 'rgba(30,5,20,.65)', win: 'rgba(255,190,120,.95)' },
+    night: { top: '#07020a', mid: '#2a0718', low: '#5c0f33', hill1: '#1c0510', hill2: '#0f0209', stem: '#ff5c95', glow: 1, tower: 'rgba(15,3,10,.85)', win: 'rgba(255,120,170,.95)' },
   };
 
   let W = 0, H = 0, dpr = 1, blooms = [], pollen = [], stars = [], towers = [];
   let kind = 0, time = null, wind = 0, pointer = null, sound = false, audio = null, visible = true;
+  let trails = [], drips = [], curTrail = null;
 
   /* ---------- 크기와 배경 요소 ---------- */
   function rand(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
@@ -169,11 +170,62 @@
     }
   }
 
+  // 끌면 남는 꿀빛 자국: 윤기 있는 굵은 선, 그 아래로 천천히 맺혀 떨어지는 방울
+  function drawTrails(dt, now) {
+    for (let i = trails.length - 1; i >= 0; i--) {
+      const tr = trails[i];
+      const age = (now - tr.t) / 1000;
+      const a = Math.max(0, 1 - Math.max(0, age - 8) / 6);
+      if (a <= 0) { trails.splice(i, 1); continue; }
+      if (tr.pts.length < 2) continue;
+      ctx.save();
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.globalAlpha = a;
+      ctx.shadowColor = tr.c; ctx.shadowBlur = 18 * SKY[time].glow;
+      ctx.strokeStyle = hexA(tr.c, 0.85); ctx.lineWidth = tr.w;
+      ctx.beginPath(); tr.pts.forEach((p, k) => k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(255,240,245,.45)'; ctx.lineWidth = tr.w * 0.28;
+      ctx.beginPath(); tr.pts.forEach((p, k) => k ? ctx.lineTo(p.x - tr.w * 0.18, p.y - tr.w * 0.2) : ctx.moveTo(p.x - tr.w * 0.18, p.y - tr.w * 0.2)); ctx.stroke();
+      ctx.restore();
+      // 방울이 맺혀요
+      if (!reduce && a > 0.5 && Math.random() < dt * 2.6) {
+        const p = tr.pts[Math.floor(Math.random() * tr.pts.length)];
+        drips.push({ x: p.x, y0: p.y, len: 0, v: 4 + Math.random() * 6, r: tr.w * (0.36 + Math.random() * 0.22), c: tr.c, hold: 0.4 + Math.random() * 1.2, free: false, y: p.y, a: 1 });
+      }
+    }
+    for (let i = drips.length - 1; i >= 0; i--) {
+      const d = drips[i];
+      if (!d.free) {
+        if (d.hold > 0) d.hold -= dt; else { d.v += 9 * dt; d.len += d.v * dt; }
+        if (d.len > 40 + d.r * 8) { d.free = true; d.y = d.y0 + d.len; d.fv = d.v * 3; }
+        // 늘어나는 끈적한 줄기 + 끝의 둥근 방울
+        const g = ctx.createLinearGradient(d.x, d.y0, d.x, d.y0 + d.len + d.r);
+        g.addColorStop(0, hexA(d.c, 0.9)); g.addColorStop(1, hexA(d.c, 0.75));
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(d.x - d.r * 0.55, d.y0);
+        ctx.quadraticCurveTo(d.x - d.r * 0.18, d.y0 + d.len * 0.6, d.x - d.r * 0.3, d.y0 + d.len);
+        ctx.lineTo(d.x + d.r * 0.3, d.y0 + d.len);
+        ctx.quadraticCurveTo(d.x + d.r * 0.18, d.y0 + d.len * 0.6, d.x + d.r * 0.55, d.y0);
+        ctx.fill();
+        ctx.beginPath(); ctx.arc(d.x, d.y0 + d.len, d.r, 0, 7); ctx.fill();
+        ctx.fillStyle = 'rgba(255,245,248,.7)'; ctx.beginPath(); ctx.arc(d.x - d.r * 0.35, d.y0 + d.len - d.r * 0.35, d.r * 0.28, 0, 7); ctx.fill();
+      } else {
+        d.fv += 600 * dt; d.y += d.fv * dt; d.a -= dt * 0.8;
+        if (d.y > groundAt(d.x) || d.a <= 0) { drips.splice(i, 1); continue; }
+        ctx.fillStyle = hexA(d.c, 0.8 * d.a);
+        ctx.beginPath(); ctx.ellipse(d.x, d.y, d.r * 0.8, d.r * 1.15, 0, 0, 7); ctx.fill();
+      }
+    }
+    if (drips.length > 160) drips.splice(0, drips.length - 160);
+  }
+
   function drawPointer() {
     if (!pointer) return;
     const s = SKY[time];
     const g = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 70);
-    g.addColorStop(0, `rgba(255,255,255,${0.25 + s.glow * 0.2})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+    g.addColorStop(0, `rgba(255,190,215,${0.2 + s.glow * 0.2})`); g.addColorStop(1, 'rgba(255,190,215,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 70, 0, 7); ctx.fill();
   }
 
@@ -184,6 +236,7 @@
       wind *= Math.pow(0.35, dt);
       drawSky(now);
       blooms.forEach(b => drawBloom(b, now));
+      drawTrails(dt, now);
       drawPollen(dt);
       drawPointer();
     }
@@ -259,13 +312,21 @@
   /* ---------- 조작 ---------- */
   let down = null;
   const local = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
-  cv.addEventListener('pointerdown', e => { down = { ...local(e), moved: 0 }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointerdown', e => { down = { ...local(e), moved: 0 }; curTrail = null; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener('pointermove', e => {
     const p = local(e);
     if (down) {
       const dx = p.x - (pointer ? pointer.x : p.x);
       down.moved += Math.abs(dx) + Math.abs(p.y - (pointer ? pointer.y : p.y));
       wind = Math.max(-3, Math.min(3, wind + dx * 0.02));
+      if (down.moved > 10) {
+        if (!curTrail) {
+          curTrail = { pts: [{ x: down.x, y: down.y }], t: performance.now(), c: COLORS[Math.floor(Math.random() * COLORS.length)], w: 10 + Math.random() * 7 };
+          trails.push(curTrail); if (trails.length > 8) trails.shift();
+        }
+        const lp = curTrail.pts[curTrail.pts.length - 1];
+        if (Math.hypot(p.x - lp.x, p.y - lp.y) > 4) { curTrail.pts.push(p); curTrail.t = performance.now(); if (curTrail.pts.length > 240) curTrail.pts.shift(); }
+      }
     }
     pointer = p;
   });
@@ -307,7 +368,7 @@
   let clearArmed = false;
   $('clear-btn').addEventListener('click', () => {
     if (!clearArmed) { clearArmed = true; $('clear-btn').textContent = '한 번 더 누르면 비워요'; setTimeout(() => { clearArmed = false; $('clear-btn').textContent = '비우기'; }, 3000); return; }
-    blooms = []; pollen = []; save(); clearArmed = false; $('clear-btn').textContent = '비우기'; toast('정원을 비웠어요.');
+    blooms = []; pollen = []; trails = []; drips = []; save(); clearArmed = false; $('clear-btn').textContent = '비우기'; toast('정원을 비웠어요.');
   });
   $('share-btn').addEventListener('click', async () => {
     const url = location.origin + location.pathname + '#g=' + encode();

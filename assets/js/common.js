@@ -5,7 +5,7 @@
   const client = hasKeys && window.supabase ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey) : null;
 
   const NAV = [
-    ['index.html', '빛의 정원'],
+    ['index.html', '밤의 정원'],
     ['viewer.html', '3D 뷰어'],
     ['map.html', '지도'],
     ['board.html', '게시판'],
@@ -13,22 +13,22 @@
     ['account.html', '계정'],
   ];
 
-  // 밝기 테마: 시스템 → 밝게 → 어둡게 순서로 바뀌어요
-  const THEMES = ['system', 'light', 'dark'];
+  // 밝기 테마: 어둡게(기본) → 밝게 → 시스템 순서로 바뀌어요
+  const THEMES = ['dark', 'light', 'system'];
   const ICON = {
     system: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
     light: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
     dark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
   };
   const THEME_NAME = { system: '시스템 설정 따르기', light: '밝게', dark: '어둡게' };
-  function getTheme() { try { return localStorage.getItem('bm-theme') || 'system'; } catch (e) { return 'system'; } }
+  function getTheme() { try { return localStorage.getItem('bm-theme') || 'dark'; } catch (e) { return 'dark'; } }
   function applyTheme(t) {
     if (t === 'system') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', t);
   }
   applyTheme(getTheme());
 
-  const MARK = '<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="bm-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe9cf"/><stop offset=".5" stop-color="#9fd2ff"/><stop offset="1" stop-color="#c5b6ff"/></linearGradient></defs><circle cx="16" cy="16" r="15" fill="url(#bm-g)"/><path d="M16 26c0-6 0-9 0-12" stroke="#2456d6" stroke-width="2" stroke-linecap="round"/><path d="M16 14c-4-1-6-4-6-7 4 0 6 3 6 7zM16 14c4-1 6-4 6-7-4 0-6 3-6 7z" fill="#2456d6"/><circle cx="16" cy="12" r="2.4" fill="#fff"/></svg>';
+  const MARK = '<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="bm-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fb1"/><stop offset=".5" stop-color="#ff4d8d"/><stop offset="1" stop-color="#ffb766"/></linearGradient></defs><circle cx="16" cy="16" r="15" fill="url(#bm-g)"/><path d="M16 26c0-6 0-9 0-12" stroke="#3a0a1e" stroke-width="2" stroke-linecap="round"/><path d="M16 14c-4-1-6-4-6-7 4 0 6 3 6 7zM16 14c4-1 6-4 6-7-4 0-6 3-6 7z" fill="#3a0a1e"/><circle cx="16" cy="12" r="2.4" fill="#ffe3ec"/></svg>';
 
   function renderChrome() {
     const page = document.body.dataset.page || '';
@@ -60,7 +60,7 @@
     const footer = document.getElementById('site-footer');
     if (footer) {
       footer.className = 'site-footer';
-      footer.textContent = '빛마루 · 함께 가꾸는 빛의 정원';
+      footer.textContent = '빛마루 · 밤에 피는 정원';
     }
     refreshAccountLink();
   }

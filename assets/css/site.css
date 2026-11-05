@@ -1,27 +1,27 @@
-/* 빛마루 — 땅 아래에서 빛과 식물이 자라는 정원 도시.
-   Layout: one centred column (max 1160px) under a glass top bar, over a slow aurora sky.
-   Surfaces are frosted glass; the accent is a clear sapphire with a mint second voice. */
+/* 빛마루 — 밤의 정원. 와인빛 어둠, 새틴 광택, 꿀처럼 흐르는 빛.
+   Layout: one centred column (max 1160px) under a glass top bar, over a slow velvet haze.
+   Surfaces are smoked satin; the accent is rose with a honey-gold second voice. */
 :root {
-  --bg: #eef2f6;
-  --bg-2: #e3eaf2;
-  --surface: rgba(255, 255, 255, 0.68);
-  --surface-solid: #ffffff;
-  --line: rgba(36, 60, 110, 0.13);
-  --line-hi: rgba(36, 86, 214, 0.38);
-  --text: #19222f;
-  --muted: #5b6a80;
-  --accent: #2456d6;
+  /* 밝게: 블러시 새틴 */
+  --bg: #fbeef1;
+  --bg-2: #f6e0e6;
+  --surface: rgba(255, 246, 248, 0.7);
+  --surface-solid: #fff8fa;
+  --line: rgba(120, 30, 60, 0.14);
+  --line-hi: rgba(200, 30, 90, 0.4);
+  --text: #2a0f1a;
+  --muted: #7d5466;
+  --accent: #c8195c;
   --accent-ink: #ffffff;
-  --accent-2: #0f9f7c;
-  --aurora-1: #8fe9cf;
-  --aurora-2: #c5b6ff;
-  --aurora-3: #9fd2ff;
-  --aurora-4: #ffd3e4;
-  --danger: #c4314b;
-  --ok: #0f8a5f;
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 18px 40px -24px rgba(30, 50, 100, 0.35);
+  --accent-2: #b8741a;
+  --aurora-1: #ffb3c8;
+  --aurora-2: #e8a6ff;
+  --aurora-3: #ffd2a6;
+  --aurora-4: #ff8fb1;
+  --danger: #b4233c;
+  --ok: #1f8a5f;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 18px 40px -24px rgba(120, 20, 60, 0.4);
 
-  /* 예전 페이지 코드와 이름을 맞추는 별칭 */
   --uv: var(--accent);
   --uv-cyan: var(--accent);
   --uv-pink: var(--accent-2);
@@ -36,22 +36,22 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0a111f; --bg-2: #0f1a2e; --surface: rgba(20, 31, 54, 0.66); --surface-solid: #121c31;
-    --line: rgba(180, 200, 255, 0.14); --line-hi: rgba(126, 166, 255, 0.5);
-    --text: #e8eefb; --muted: #97a6c2; --accent: #86abff; --accent-ink: #0a111f; --accent-2: #5fe0bd;
-    --aurora-1: #1f6b5c; --aurora-2: #4a3d8f; --aurora-3: #1d4c86; --aurora-4: #6b2f55;
+    --bg: #12060c; --bg-2: #1c0a13; --surface: rgba(48, 14, 30, 0.6); --surface-solid: #230c17;
+    --line: rgba(255, 160, 200, 0.14); --line-hi: rgba(255, 90, 150, 0.5);
+    --text: #f8e9ef; --muted: #c99cb0; --accent: #ff4d8d; --accent-ink: #1a0610; --accent-2: #ffb766;
+    --aurora-1: #6b0f35; --aurora-2: #4a1466; --aurora-3: #7a3a10; --aurora-4: #9c1747;
     --danger: #ff8fa3; --ok: #6ee7b7;
-    --shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+    --shadow: 0 1px 0 rgba(255, 200, 220, 0.06) inset, 0 18px 40px -20px rgba(0, 0, 0, 0.85);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0a111f; --bg-2: #0f1a2e; --surface: rgba(20, 31, 54, 0.66); --surface-solid: #121c31;
-  --line: rgba(180, 200, 255, 0.14); --line-hi: rgba(126, 166, 255, 0.5);
-  --text: #e8eefb; --muted: #97a6c2; --accent: #86abff; --accent-ink: #0a111f; --accent-2: #5fe0bd;
-  --aurora-1: #1f6b5c; --aurora-2: #4a3d8f; --aurora-3: #1d4c86; --aurora-4: #6b2f55;
+  --bg: #12060c; --bg-2: #1c0a13; --surface: rgba(48, 14, 30, 0.6); --surface-solid: #230c17;
+  --line: rgba(255, 160, 200, 0.14); --line-hi: rgba(255, 90, 150, 0.5);
+  --text: #f8e9ef; --muted: #c99cb0; --accent: #ff4d8d; --accent-ink: #1a0610; --accent-2: #ffb766;
+  --aurora-1: #6b0f35; --aurora-2: #4a1466; --aurora-3: #7a3a10; --aurora-4: #9c1747;
   --danger: #ff8fa3; --ok: #6ee7b7;
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+  --shadow: 0 1px 0 rgba(255, 200, 220, 0.06) inset, 0 18px 40px -20px rgba(0, 0, 0, 0.85);
   color-scheme: dark;
 }
 
@@ -84,14 +84,14 @@ img { max-width: 100%; }
 .sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; background: var(--bg); }
 .sky i {
   position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%;
-  filter: blur(70px); opacity: 0.55;
+  filter: blur(80px); opacity: 0.6;
   animation: drift 28s ease-in-out infinite alternate;
 }
 .sky i:nth-child(1) { background: var(--aurora-1); left: -15vmax; top: -20vmax; }
 .sky i:nth-child(2) { background: var(--aurora-2); right: -18vmax; top: -10vmax; animation-duration: 34s; animation-delay: -8s; }
 .sky i:nth-child(3) { background: var(--aurora-3); left: 20vw; bottom: -30vmax; animation-duration: 40s; animation-delay: -14s; }
 .sky i:nth-child(4) { background: var(--aurora-4); right: 10vw; bottom: -25vmax; width: 40vmax; height: 40vmax; animation-duration: 31s; opacity: 0.35; }
-@keyframes drift { to { transform: translate(6vmax, 4vmax) scale(1.12); } }
+@keyframes drift { to { transform: translate(5vmax, 6vmax) scale(1.18); } }
 @media (prefers-reduced-motion: reduce) { .sky i { animation: none; } }
 
 /* ---------- 머리글 ---------- */
@@ -130,6 +130,10 @@ h1, h2, h3 { text-wrap: balance; margin: 0; letter-spacing: -0.02em; }
 .lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 16px; }
 .section-title { font-size: 21px; font-weight: 800; }
 
+.panel::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 220, 235, 0.07) 45%, transparent 60%);
+}
 .panel {
   position: relative; min-width: 0;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
@@ -145,9 +149,9 @@ h1, h2, h3 { text-wrap: balance; margin: 0; letter-spacing: -0.02em; }
   border-radius: 999px; padding: 8px 18px; font-weight: 600; font-size: 14px; text-decoration: none;
   transition: transform .15s, box-shadow .2s, background .2s;
 }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -10px rgba(36, 86, 214, 0.5); color: var(--text); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--accent) 70%, transparent); color: var(--text); }
 .btn:active { transform: translateY(0); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, var(--accent-2))); border-color: transparent; color: var(--accent-ink); }
 .btn.primary:hover { color: var(--accent-ink); }
 .btn.ghost { background: transparent; }
 .btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: transparent; }
