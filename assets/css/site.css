@@ -285,7 +285,7 @@ body[data-layout="tri"] {
 .site-side .wordmark b { font-size: 26px; }
 .side-nav { display: grid; gap: 4px; }
 .side-nav a {
-  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: baseline; gap: 8px;
+  display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: baseline; gap: 8px;
   padding: 10px 12px; border-radius: 4px 10px 6px 12px; text-decoration: none; color: var(--muted);
   border: 1px solid transparent; transition: background .2s, color .2s, transform .2s;
 }
@@ -329,3 +329,5 @@ body[data-layout="tri"] .shell { padding-block: 28px 40px; }
   .content-scroll { grid-column: 1; grid-row: 2; }
   .tunnel-strip { grid-column: 1; grid-row: 3; }
 }
+
+.tunnel-strip .sv2d { position: absolute; left: 0; top: 0; z-index: 1; pointer-events: none; overflow: visible; filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.6)); }
